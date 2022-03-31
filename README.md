@@ -15,6 +15,9 @@ Assignment group information helps admins to understand why apps and configurati
 * Autopilot deployment profile JSON (hover on top of Autopilot profile)
 * Intune device JSON information on right side (this helps to understand what data there is inside Intune)
 
+### GUI view
+![IntuneDeviceDetailsGUI.png](https://www.petripaavola.fi/IntuneDeviceDetailsGUI.png)
+
 ### Usage
 * make sure you have installed Intune Powershell module (**Install-Module -Name Microsoft.Graph.Intune**)
 
@@ -33,8 +36,6 @@ Get-IntuneManagedDevice -Filter "devicename eq 'MyLoveMostPC'" | .\IntuneDeviceD
 # Show devices in Out-GridView and for selected device show IntuneDeviceDetailsGUI
 Get-IntuneManagedDevice | Out-GridView -OutputMode Single | .\IntuneDeviceDetailsGUI.ps1
 ```
-### GUI view
-![IntuneDeviceDetailsGUI.png](https://www.petripaavola.fi/IntuneDeviceDetailsGUI.png)
 
 ## Disclaimer
 This tool is provided "AS IS" without any warranties so please evaluate it in test environment before production use. It is provided as Powershell script so there is no closed code and you can evaluate everything it does. Trust is important when using Administrative user rights and tools in your production environment. I use this tool daily in production environments I manage myself.
