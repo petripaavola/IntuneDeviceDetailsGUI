@@ -1,4 +1,4 @@
-# Intune Device Details GUI
+# Intune Device Details GUI ver. 2.3
 Go to script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)
 
 This Powershell based GUI/report helps Intune admins to see Intune device data in one view
