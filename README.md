@@ -1,4 +1,6 @@
 # Intune Device Details GUI
+Go to script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)
+
 This Powershell based GUI/report helps Intune admins to see Intune device data in one view
 
 Especially it shows what **Azure AD Groups and what Intune filters** are used in Application and Configuration assignments.
