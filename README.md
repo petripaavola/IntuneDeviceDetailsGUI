@@ -81,6 +81,11 @@ Get-IntuneManagedDevice -Filter "devicename eq 'MyLoveMostPC'" | .\IntuneDeviceD
 Get-IntuneManagedDevice | Out-GridView -OutputMode Single | .\IntuneDeviceDetailsGUI.ps1
 ```
 
+### Intune user permissions needed to run this script
+* Script uses user login so login with user who has at least **read permissions** to Intune and permissions to use Intune Powershell module
+* Script does only GET operations and 2 POST operations (to get Intune report) so at this time this is read only tool
+* For most restrictive permissions this script has been tested even with **Intune Read Only Operators role** and script works with that role also
+
 ### Future possible plans
 * Never ever create Powershell UIs without using syncHash and multiple threads
   * This script was originally part of multithreaded tool so syncHash was not used inside this script and threading was done outside this script
