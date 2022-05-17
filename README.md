@@ -26,7 +26,7 @@ Assignment group information helps admins to understand why apps and configurati
 * Show Primary User Group Memberships and membership rules
 * Show Latest Signed-In User Group Memberships and membership rules
 * Intune JSON information on right side (this helps to understand what data there is inside Intune)
-* **Hover on** Device, PrimaryUser, Latest logged-in user, Group, Application, Configuration, AssignmentGroup, Filter and many other places to get more information
+* **Hover on** to get ToolTip on Device, PrimaryUser, Latest logged-in user, Group, Application, Configuration, AssignmentGroup, Filter and many other places to get more information
   * There is lot of work done to get these (hover) ToolTips to show relevant information in easily readable format
 * **Right click menus** to
   * Copy data to clipboard
@@ -37,9 +37,11 @@ Assignment group information helps admins to understand why apps and configurati
   * Idea is to use cached data but still every time double check that there are no changes in Intune
   * This saves Graph API bandwidth but still makes sure that data relevant (real time)
 * Show Autopilot information
- * Applied Autopilot deployment profile
- * Applied Enrollment Status Page (this information is not available in MEM console)
- * Applied Enrollment Restrictions (this information is not available in MEM console)
+  * Applied Autopilot deployment profile
+  * **Applied Enrollment Status Page (this information is not available in MEM console)**
+  * **Applied Enrollment Restrictions (this information is not available in MEM console)**
+  * Autopilot Deployment Profile JSON
+  * Autopilot device JSON
 * Support for Shared devices
   * Search with user email address and get devices where user has logged in
   * Latest logged in user information ToolTip (hover on)
