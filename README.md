@@ -36,6 +36,15 @@ Assignment group information helps admins to understand why apps and configurati
 * Script uses caching a lot. All used data is automatically downloaded once a day and during the day delta checks are done to Intune data
   * Idea is to use cached data but still every time double check that there are no changes in Intune
   * This saves Graph API bandwidth but still makes sure that data relevant (real time)
+* Show Autopilot information
+ * Applied Autopilot deployment profile
+ * Applied Enrollment Status Page (this information is not available in MEM console)
+ * Applied Enrollment Restrictions (this information is not available in MEM console)
+* Support for Shared devices
+  * Search with user email address and get devices where user has logged in
+  * Latest logged in user information ToolTip (hover on)
+  * Latest logged in user Azure AD Group memberships (and membeship rules)
+  * Application and Configuration assignment are checked against latest logged in user's group memberships (if there is no PrimaryUser in device)
 
 
 ### Usage
