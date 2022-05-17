@@ -48,7 +48,9 @@ Assignment group information helps admins to understand why apps and configurati
 
 
 ### Usage
-**Prerequisities: make sure you have installed Intune Powershell module and allow running Powershell scripts**
+**Prerequisities:**
+
+**make sure you have installed Intune Powershell module and allow running Powershell scripts**
 ```
 # Install Intune Powershell module
 Install-Module -Name Microsoft.Graph.Intune -Scope CurrentUser
@@ -73,12 +75,19 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser
 
 # Pipe Intune objects to script
 Get-IntuneManagedDevice -Filter "devicename eq 'MyLoveMostPC'" | .\IntuneDeviceDetailsGUI.ps1
-'MyLoveMostPC' | .\IntuneDeviceDetailsGUI.ps1
 
 # Or create Device Management UI with Out-GridView
 # Show devices in Out-GridView and for selected device show IntuneDeviceDetailsGUI
 Get-IntuneManagedDevice | Out-GridView -OutputMode Single | .\IntuneDeviceDetailsGUI.ps1
 ```
+
+### Future possible plans
+* Never ever create Powershell UIs without using syncHash and multiple threads
+  * This script was originally part of multithreaded tool so syncHash was not used inside this script and threading was done outside this script
+  * Now this tool is self containing so in the next major version update syncHash and threading needs to be implemented to create responsive UI
+* Integrate my other Application and Configuration Assignment reports into this toolset
+* Create other views to show information about users, Azure AD Groups, Applications and Configurations
+* Any other feature requests ?-)
 
 ## Disclaimer
 This tool is provided "AS IS" without any warranties so please evaluate it in test environment before production use. It is provided as Powershell script so there is no closed code and you can evaluate everything it does. Trust is important when using Administrative user rights and tools in your production environment. I use this tool daily in production environments I manage myself.
