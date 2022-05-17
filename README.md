@@ -1,32 +1,66 @@
-# Intune Device Details GUI ver. 2.3
+# Intune Device Details GUI ver. 2.95 (updated 17.5.2022)
 Go to script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)
+
+**Version 2.95 is a huge update to the script's functionalities. Built-in search helps using this tool a lot.**
 
 This Powershell based GUI/report helps Intune admins to see Intune device data in one view
 
-Especially it shows what **Azure AD Groups and what Intune filters** are used in Application and Configuration assignments.
+Especially it shows what **Azure AD Groups and Intune filters** are used in Application and Configuration Assignments.
 
 Assignment group information helps admins to understand why apps and configurations are targeted to devices and find possible bad assignments.
 
-### Other information also shown
-* Recently logged in user(s)
-* OS Version support dates
-* Device Group Memberships
-* Primary User Group Memberships (hover on top of Primary User)
-* Autopilot deployment profile JSON (hover on top of Autopilot profile)
-* Intune device JSON information on right side (this helps to understand what data there is inside Intune)
-
 ### GUI view
-![IntuneDeviceDetailsGUI.png](https://www.petripaavola.fi/IntuneDeviceDetailsGUI.png)
+![IntuneDeviceDetailsGUI_v2.95.gif](https://github.com/petripaavola/IntuneDeviceDetailsGUI/blob/main/pics/IntuneDeviceDetailsGUI_v2.95.gif)
+
+### Features
+* **Search** with free keyword or use built-in Quick Filters
+  * Keyword search with device name, serial, user email address, operating system, deviceId
+  * searching with user email address also shows devices where user has logged-in (this is not shown in MEM/Intune search)
+* **Show Application Assignments with AzureAD Groups and Filters information**
+* **Show Configurations Assignments with AzureAD Groups and Filters information**
+* Highlight assignment states with colors to easily see what is happening
+  * For example highlight Not Applicable application assignment with yellow and usually you notice that Filter is reason for Not Applicable state
+* Show Recently logged in user(s)
+* Show OS Version support dates
+* Show Device Group Memberships and membership rules
+* Show Primary User Group Memberships and membership rules
+* Show Latest Signed-In User Group Memberships and membership rules
+* Intune JSON information on right side (this helps to understand what data there is inside Intune)
+* **Hover on** Device, PrimaryUser, Latest logged-in user, Group, Application, Configuration, AssignmentGroup, Filter and many other places to get more information
+  * There is lot of work done to get these (hover) ToolTips to show relevant information in easily readable format
+* **Right click menus** to
+  * Copy data to clipboard
+  * Copy Dynamic Azure AD Group Membership rules to clipboard
+  * Open specific resource in MEM/Intune web UI (device, autopilot device, user, group, application)
+  * Copy Win32 Application custom detection and requirement scripts
+* Script uses caching a lot. All used data is automatically downloaded once a day and during the day delta checks are done to Intune data
+  * Idea is to use cached data but still every time double check that there are no changes in Intune
+  * This saves Graph API bandwidth but still makes sure that data relevant (real time)
+
 
 ### Usage
-* make sure you have installed Intune Powershell module (**Install-Module -Name Microsoft.Graph.Intune**)
+**Prerequisities: make sure you have installed Intune Powershell module and allow running Powershell scripts**
+```
+# Install Intune Powershell module
+Install-Module -Name Microsoft.Graph.Intune -Scope CurrentUser
 
+# Allow running Powershell scripts
+
+# This allows running all signed scripts for current user
+# This shows warning if script is not signed
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# This allows running all scripts for current user
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser
+```
+
+**Running the script**
 ```
 .\IntuneDeviceDetailsGUI.ps1
-.\IntuneDeviceDetailsGUI.ps1 -deviceName MyLoveMostPC
+.\IntuneDeviceDetailsGUI.ps1 -Verbose
+
 .\IntuneDeviceDetailsGUI.ps1 -Id 2e6e1d5f-b18a-44c6-989e-9bbb1efafbff
 .\IntuneDeviceDetailsGUI.ps1 -IntuneDeviceId 2e6e1d5f-b18a-44c6-989e-9bbb1efafbff
-.\IntuneDeviceDetailsGUI.ps1 -serialNumber 1234567890
 
 # Pipe Intune objects to script
 Get-IntuneManagedDevice -Filter "devicename eq 'MyLoveMostPC'" | .\IntuneDeviceDetailsGUI.ps1
