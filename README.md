@@ -38,8 +38,8 @@ Assignment group information helps admins to understand why apps and configurati
   * This saves Graph API bandwidth but still makes sure that data relevant (real time)
 * Show Autopilot information
   * Applied Autopilot deployment profile
-  * **Applied Enrollment Status Page (this information is not available in MEM console)**
-  * **Applied Enrollment Restrictions (this information is not available in MEM console)**
+  * Applied Enrollment Status Page
+  * Applied Enrollment Restrictions
   * Autopilot Deployment Profile JSON
   * Autopilot device JSON
 * Support for Shared devices
