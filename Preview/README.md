@@ -13,5 +13,6 @@ Download script [IntuneDeviceDetailsGUI_v2.973-Preview.ps1](./IntuneDeviceDetail
 * Added **members count** to Assignment, Device and User groups
   * This helps understand **impact** of the deployment -> how many devices and/or users are targeted
 * Added user selection dropdown for Application Assignments report (list of logged on users to device)
+  * This is really important with **Shared devices** or if multiple users have logged on to device
 * Updated Windows support dates
 * Some other minor bug fixes
