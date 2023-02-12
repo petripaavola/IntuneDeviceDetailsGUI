@@ -6,3 +6,12 @@ Most likely reason for not being production version is that I would like to get 
 
 
 Download script [IntuneDeviceDetailsGUI_v2.973-Preview.ps1](./IntuneDeviceDetailsGUI_v2.973-Preview.ps1)
+
+### Changelog
+* Fixed Configuration profiles report max 50 entries limit
+  * Script originally fetched max 50 configuration profiles assignment intents
+* Added **members count** to Assignment, Device and User groups
+  * This helps understand **impact** of the deployment -> how many devices and/or users are targeted
+* Added user selection dropdown for Application Assignments report (list of logged on users to device)
+* Updated Windows support dates
+* Some other minor bug fixes
