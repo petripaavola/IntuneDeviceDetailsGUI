@@ -1,3 +1,5 @@
+##### Check out latest [Preview-version 2.973](./Preview) which is next Release Candidate to production
+
 # Intune Device Details GUI ver. 2.95 (updated 17.5.2022)
 Go to script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)
 
