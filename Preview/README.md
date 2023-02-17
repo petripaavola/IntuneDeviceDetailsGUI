@@ -18,4 +18,7 @@ Download script [IntuneDeviceDetailsGUI_v2.973-Preview.ps1](./IntuneDeviceDetail
 * Some other minor bug fixes
 
 ### Known bugs ###
-* Intune New Store App installState is not shown correctly on report (working on that issue currently)
+* Intune New Store UWP Apps installState is not shown correctly on report
+  * **Confirmed falsepositive**
+  * With shared devices there is no user selected by default so that is the reason we don't get information for Store UWP App deployments.
+  * Selecting user will show New Store UWP App Installation state for selected user
