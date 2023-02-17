@@ -16,3 +16,6 @@ Download script [IntuneDeviceDetailsGUI_v2.973-Preview.ps1](./IntuneDeviceDetail
   * This is really important with **Shared devices** or if multiple users have logged on to device
 * Updated Windows support dates
 * Some other minor bug fixes
+
+### Known bugs ###
+* Intune New Store App installState is not shown correctly on report (working on that issue currently)
