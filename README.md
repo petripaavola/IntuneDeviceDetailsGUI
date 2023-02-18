@@ -5,7 +5,7 @@ Go to script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)
 
 **Version 2.95 is a huge update to the script's functionalities. Built-in search helps using this tool a lot.**
 
-This Powershell based GUI/report helps Intune admins to see Intune device data in one view
+This Windows Powershell based GUI/report helps Intune admins to see Intune device data in one view
 
 Especially it shows what **Azure AD Groups and Intune filters** are used in Application and Configuration Assignments.
 
