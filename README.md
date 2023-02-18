@@ -1,4 +1,4 @@
-##### Check out latest [Preview-version 2.973](./Preview) which is next Release Candidate to production. You will want to use this version and I use it daily :)
+##### Check out latest [Preview-version 2.974](./Preview) which is next Release Candidate to production. You will want to use this version and I use it daily :)
 
 # Intune Device Details GUI ver. 2.95 (updated 17.5.2022)
 Go to script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)
@@ -53,6 +53,8 @@ Assignment group information helps admins to understand why apps and configurati
 
 ### Usage
 **Prerequisities:**
+
+Run script in **Windows Powershell**. Windows Presentations Framework (WPF) based GUIs don´t work with Powershell core.
 
 **make sure you have installed Intune Powershell module and allow running Powershell scripts**
 ```
