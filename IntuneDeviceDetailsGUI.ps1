@@ -1,13 +1,14 @@
 ﻿<#
 .Synopsis
-   Intune Device Details GUI ver 2.95
+   Intune Device Details GUI ver 2.974
    
+
    Author:
    Petri.Paavola@yodamiitti.fi
    Modern Management Principal
    Microsoft MVP - Windows and Devices for IT
    
-   2022-05-17
+   2023-03-19
    
    https://github.com/petripaavola/IntuneDeviceDetailsGUI
 .DESCRIPTION
@@ -20,7 +21,9 @@
    Some of this information is not shown easily or at all in Intune web console
    - Application and Configuration Deployments include information of
      what Azure AD Group was used for assignment and if filter was applied
+   - Number of affected devices and/or users is shown with deployments
    - Last signed in users are shown
+   - With shared devices you can select logged in user to show Application Deployments
    - JSON data inside Intune helps for example to build Azure AD Dynamic groups rules
    - This tool helps to understand why some Apps or Configuration Profiles are applying to device
      (what Azure AD group and/or filter is applied)
@@ -75,7 +78,7 @@ Param(
     [String]$id = $null
 )
 
-$ScriptVersion = "ver 2.95"
+$ScriptVersion = "ver 2.974"
 $IntuneDeviceId = $id
 $TimeOutBetweenGraphAPIRequests = 300
 
@@ -152,7 +155,7 @@ $inputXML = @"
 							<Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,2" />
 							<TextBlock FontSize="14" x:Name='IntuneDeviceDetails_textBox_DeviceName_ToolTip_DeviceProperties' FontFamily="Consolas"></TextBlock>
 							<TextBlock/>
-							<TextBlock FontSize="14" FontWeight="Bold">extensionAttributes</TextBlock>
+							<TextBlock FontSize="14" FontWeight="Bold">AzureAD device extensionAttributes</TextBlock>
 							<Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,0" />
 							<TextBlock FontSize="14" x:Name='IntuneDeviceDetails_textBox_DeviceName_ToolTip_extensionAttributes' FontFamily="Consolas"></TextBlock>
 						</StackPanel>
@@ -298,13 +301,13 @@ $inputXML = @"
 				<TextBox x:Name="IntuneDeviceDetails_RecentCheckins_textBox" Grid.Row="1" Margin="5,5,5,5" TextWrapping="Wrap" Text="" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" ToolTipService.ShowDuration="500000">
 					<TextBox.ContextMenu>
 						<ContextMenu>
-							<MenuItem x:Name='Latest_CheckIn_User_Menu_Copy' Header='Copy latest check-in user UPN'/>
+							<MenuItem x:Name='Latest_CheckIn_User_Menu_Copy' Header='Copy latest Checked-In user UPN'/>
 							<MenuItem x:Name='Latest_CheckIn_User_Menu_Copy_Menu_OpenLatestCheckInUserInBrowser' Header='Open Latest Checked-In User in browser'/>
 						</ContextMenu>
 					</TextBox.ContextMenu>
 					<TextBox.ToolTip>
 						<StackPanel>
-							<TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5">Latest Checked-In user</TextBlock>
+							<TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5">Latest or selected Checked-In user</TextBlock>
 							<TextBlock x:Name='textBlock_LatestCheckInUser_textBox_ToolTip_UPN' FontWeight="Bold" FontSize="14" Margin="0,0,0,5"></TextBlock>
 							<TextBlock FontSize="14" FontWeight="Bold">Basic info</TextBlock>
 							<Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,0" />
@@ -382,6 +385,28 @@ $inputXML = @"
 											<GridViewColumn.CellTemplate>
 												<DataTemplate>
 													<TextBlock FontWeight="Bold" Text="{Binding 'displayName'}" ToolTip="{Binding Path=description}">
+													</TextBlock>
+												</DataTemplate>
+											</GridViewColumn.CellTemplate>
+										</GridViewColumn>
+										<GridViewColumn Width="50">
+											<GridViewColumn.Header>
+												<GridViewColumnHeader FontWeight="Bold">Devices</GridViewColumnHeader>
+											</GridViewColumn.Header>
+											<GridViewColumn.CellTemplate>
+												<DataTemplate>
+													<TextBlock HorizontalAlignment="Right" Text="{Binding 'YodamiittiCustomGroupMembersCountDevices'}">
+													</TextBlock>
+												</DataTemplate>
+											</GridViewColumn.CellTemplate>
+										</GridViewColumn>
+										<GridViewColumn Width="40">
+											<GridViewColumn.Header>
+												<GridViewColumnHeader FontWeight="Bold">Users</GridViewColumnHeader>
+											</GridViewColumn.Header>
+											<GridViewColumn.CellTemplate>
+												<DataTemplate>
+													<TextBlock HorizontalAlignment="Right" Text="{Binding 'YodamiittiCustomGroupMembersCountUsers'}">
 													</TextBlock>
 												</DataTemplate>
 											</GridViewColumn.CellTemplate>
@@ -472,7 +497,42 @@ $inputXML = @"
 											</GridViewColumn.Header>
 											<GridViewColumn.CellTemplate>
 												<DataTemplate>
-													<TextBlock FontWeight="Bold" Text="{Binding 'displayName'}" ToolTip="{Binding Path=description}">
+													<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,0">
+														<Grid.Style>
+															<Style TargetType="{x:Type Grid}">
+																<Style.Triggers>
+																	<DataTrigger Binding="{Binding YodamiittiCustomGroupType}" Value="DirectoryRole">
+																		<Setter Property="Background" Value="yellow"/>
+																	</DataTrigger>
+																	<DataTrigger Binding="{Binding displayName}" Value="Global Administrator">
+																		<Setter Property="Background" Value="red"/>
+																	</DataTrigger>
+																</Style.Triggers>
+															</Style>
+														</Grid.Style>
+														<TextBlock FontWeight="Bold" HorizontalAlignment="Left" Text="{Binding displayName}" ToolTip="{Binding Path=description}" Padding="0" Margin="0" />
+													</Grid>
+												</DataTemplate>
+											</GridViewColumn.CellTemplate>
+										</GridViewColumn>
+										<GridViewColumn Width="50">
+											<GridViewColumn.Header>
+												<GridViewColumnHeader FontWeight="Bold">Devices</GridViewColumnHeader>
+											</GridViewColumn.Header>
+											<GridViewColumn.CellTemplate>
+												<DataTemplate>
+													<TextBlock HorizontalAlignment="Right" Text="{Binding 'YodamiittiCustomGroupMembersCountDevices'}">
+													</TextBlock>
+												</DataTemplate>
+											</GridViewColumn.CellTemplate>
+										</GridViewColumn>
+										<GridViewColumn Width="40">
+											<GridViewColumn.Header>
+												<GridViewColumnHeader FontWeight="Bold">Users</GridViewColumnHeader>
+											</GridViewColumn.Header>
+											<GridViewColumn.CellTemplate>
+												<DataTemplate>
+													<TextBlock HorizontalAlignment="Right" Text="{Binding 'YodamiittiCustomGroupMembersCountUsers'}">
 													</TextBlock>
 												</DataTemplate>
 											</GridViewColumn.CellTemplate>
@@ -483,8 +543,21 @@ $inputXML = @"
 											</GridViewColumn.Header>
 											<GridViewColumn.CellTemplate>
 												<DataTemplate>
-													<TextBlock Text="{Binding 'YodamiittiCustomGroupType'}">
-													</TextBlock>
+													<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,0">
+														<Grid.Style>
+															<Style TargetType="{x:Type Grid}">
+																<Style.Triggers>
+																	<DataTrigger Binding="{Binding YodamiittiCustomGroupType}" Value="DirectoryRole">
+																		<Setter Property="Background" Value="yellow"/>
+																	</DataTrigger>
+																	<DataTrigger Binding="{Binding displayName}" Value="Global Administrator">
+																		<Setter Property="Background" Value="red"/>
+																	</DataTrigger>
+																</Style.Triggers>
+															</Style>
+														</Grid.Style>
+														<TextBlock HorizontalAlignment="Left" Text="{Binding YodamiittiCustomGroupType}" Padding="0" Margin="0" />
+													</Grid>
 												</DataTemplate>
 											</GridViewColumn.CellTemplate>
 										</GridViewColumn>
@@ -531,12 +604,12 @@ $inputXML = @"
 							<Grid ToolTipService.ShowDuration="500000">
 								<Grid.ToolTip>
 									<StackPanel>
-										<TextBlock FontSize="14" FontWeight="Bold">Primary User Group Memberships</TextBlock>
+										<TextBlock FontSize="14" FontWeight="Bold">Checked-in User's Group Memberships</TextBlock>
 										<Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,0" />
 										<TextBlock x:Name="TextBlock_TabItem_LatestCheckedInUser_GroupMembershipsTAB_Header_ToolTip" Text="" FontFamily="Consolas" FontSize="14"/>
 									</StackPanel>
 								</Grid.ToolTip>
-								<TextBlock x:Name="TabItem_LatestCheckedInUser_GroupMembershipsTAB_Header" Text="Latest Checked-In User Group Memberships" Style="{StaticResource HeaderTextBlockStyle}"/>
+								<TextBlock x:Name="TabItem_LatestCheckedInUser_GroupMembershipsTAB_Header" Text="Checked-In User Group Memberships" Style="{StaticResource HeaderTextBlockStyle}"/>
 							</Grid>
 						</TabItem.Header>
 						<Grid>
@@ -563,7 +636,42 @@ $inputXML = @"
 											</GridViewColumn.Header>
 											<GridViewColumn.CellTemplate>
 												<DataTemplate>
-													<TextBlock FontWeight="Bold" Text="{Binding 'displayName'}" ToolTip="{Binding Path=description}">
+													<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,0">
+														<Grid.Style>
+															<Style TargetType="{x:Type Grid}">
+																<Style.Triggers>
+																	<DataTrigger Binding="{Binding YodamiittiCustomGroupType}" Value="DirectoryRole">
+																		<Setter Property="Background" Value="yellow"/>
+																	</DataTrigger>
+																	<DataTrigger Binding="{Binding displayName}" Value="Global Administrator">
+																		<Setter Property="Background" Value="red"/>
+																	</DataTrigger>
+																</Style.Triggers>
+															</Style>
+														</Grid.Style>
+														<TextBlock FontWeight="Bold" HorizontalAlignment="Left" Text="{Binding displayName}" ToolTip="{Binding Path=description}" Padding="0" Margin="0" />
+													</Grid>
+												</DataTemplate>
+											</GridViewColumn.CellTemplate>
+										</GridViewColumn>
+										<GridViewColumn Width="50">
+											<GridViewColumn.Header>
+												<GridViewColumnHeader FontWeight="Bold">Devices</GridViewColumnHeader>
+											</GridViewColumn.Header>
+											<GridViewColumn.CellTemplate>
+												<DataTemplate>
+													<TextBlock HorizontalAlignment="Right" Text="{Binding 'YodamiittiCustomGroupMembersCountDevices'}">
+													</TextBlock>
+												</DataTemplate>
+											</GridViewColumn.CellTemplate>
+										</GridViewColumn>
+										<GridViewColumn Width="40">
+											<GridViewColumn.Header>
+												<GridViewColumnHeader FontWeight="Bold">Users</GridViewColumnHeader>
+											</GridViewColumn.Header>
+											<GridViewColumn.CellTemplate>
+												<DataTemplate>
+													<TextBlock HorizontalAlignment="Right" Text="{Binding 'YodamiittiCustomGroupMembersCountUsers'}">
 													</TextBlock>
 												</DataTemplate>
 											</GridViewColumn.CellTemplate>
@@ -574,8 +682,21 @@ $inputXML = @"
 											</GridViewColumn.Header>
 											<GridViewColumn.CellTemplate>
 												<DataTemplate>
-													<TextBlock Text="{Binding 'YodamiittiCustomGroupType'}">
-													</TextBlock>
+													<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,0">
+														<Grid.Style>
+															<Style TargetType="{x:Type Grid}">
+																<Style.Triggers>
+																	<DataTrigger Binding="{Binding YodamiittiCustomGroupType}" Value="DirectoryRole">
+																		<Setter Property="Background" Value="yellow"/>
+																	</DataTrigger>
+																	<DataTrigger Binding="{Binding displayName}" Value="Global Administrator">
+																		<Setter Property="Background" Value="red"/>
+																	</DataTrigger>
+																</Style.Triggers>
+															</Style>
+														</Grid.Style>
+														<TextBlock HorizontalAlignment="Left" Text="{Binding YodamiittiCustomGroupType}" Padding="0" Margin="0" />
+													</Grid>
 												</DataTemplate>
 											</GridViewColumn.CellTemplate>
 										</GridViewColumn>
@@ -650,7 +771,7 @@ $inputXML = @"
 											<Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="6,0" />
 											<TextBox x:Name="TextBox_Overview_PrimaryUser" TextWrapping="NoWrap" Text="" Padding="5" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden" Margin="5" IsReadOnly="True" FontFamily="Consolas" FontSize="14"/>
 											<TextBlock/>
-											<TextBlock x:Name="TextBlock_Overview_LatestCheckedInUserName" FontSize="16" FontWeight="Bold" Margin="6,0">Latest Checked-In User</TextBlock>
+											<TextBlock x:Name="TextBlock_Overview_LatestCheckedInUserName" FontSize="16" FontWeight="Bold" Margin="6,0">Latest or Selected Checked-In User</TextBlock>
 											<Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="6,0" />
 											<TextBox x:Name="TextBox_Overview_LatestCheckedInUser" TextWrapping="NoWrap" Text="" Padding="5" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden" Margin="5" IsReadOnly="True" FontFamily="Consolas" FontSize="14"/>
 										</StackPanel>
@@ -778,7 +899,10 @@ $inputXML = @"
                     <RowDefinition Height="*" MinHeight="150"/>
                 </Grid.RowDefinitions>
                 <Label x:Name="IntuneDeviceDetails_ApplicationAssignments_label" Grid.Row="0" Content="Application Assignments" Height="27" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
-                <ListView x:Name="listView_ApplicationAssignments" Grid.Row="1" Margin="5,5,5,5" IsManipulationEnabled="True">
+				<Label x:Name="IntuneDeviceDetails_ApplicationAssignments_SelectUser_label" Grid.Row="0" Content="Select user" Height="27" HorizontalAlignment="Right" Margin="0,0,310,0" VerticalAlignment="Top" FontWeight="Bold"/>
+				<ComboBox x:Name="IntuneDeviceDetails_ApplicationAssignments_SelectUser_ComboBox" Grid.Row="0" HorizontalAlignment="Right" Margin="0,5,6,0" VerticalAlignment="Top" Width="300" IsEditable="False" FontFamily="Consolas" FontSize="14">
+				</ComboBox>
+				<ListView x:Name="listView_ApplicationAssignments" Grid.Row="1" Margin="5,5,5,5" IsManipulationEnabled="True">
                     <!-- This makes our colored cells to fill whole cell background, not just text background -->
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
@@ -818,7 +942,7 @@ $inputXML = @"
                                                     </Style.Triggers>
                                                 </Style>
                                             </Grid.Style>
-                                            <TextBlock HorizontalAlignment="Center" Text="{Binding context}" Padding="0" Margin="0" />
+                                            <TextBlock HorizontalAlignment="Center" Text="{Binding context}" ToolTip="{Binding Path=contextToolTip}" Padding="0" Margin="0" />
                                         </Grid>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
@@ -958,6 +1082,17 @@ $inputXML = @"
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
 							</GridViewColumn>
+							<GridViewColumn Width="105">
+                                <GridViewColumn.Header>
+									<GridViewColumnHeader FontWeight="Bold">Group Members</GridViewColumnHeader>
+								</GridViewColumn.Header>
+								<GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock HorizontalAlignment="Right" Text="{Binding YodamiittiCustomGroupMembers}">
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>							
 							<GridViewColumn Width="250">
 								<GridViewColumn.Header>
 									<GridViewColumnHeader FontWeight="Bold">Filter</GridViewColumnHeader>
@@ -1051,7 +1186,7 @@ $inputXML = @"
                                                     </Style.Triggers>
                                                 </Style>
                                             </Grid.Style>
-                                            <TextBlock HorizontalAlignment="Center" Text="{Binding context}" Padding="0" Margin="0" />
+                                            <TextBlock HorizontalAlignment="Center" Text="{Binding context}" ToolTip="{Binding Path=contextToolTip}" Padding="0" Margin="0" />
                                         </Grid>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
@@ -1182,6 +1317,17 @@ $inputXML = @"
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
 							</GridViewColumn>
+							<GridViewColumn Width="105">
+                                <GridViewColumn.Header>
+									<GridViewColumnHeader FontWeight="Bold">Group Members</GridViewColumnHeader>
+								</GridViewColumn.Header>
+								<GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock HorizontalAlignment="Right" Text="{Binding YodamiittiCustomGroupMembers}">
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>							
 							<GridViewColumn Width="250">
 								<GridViewColumn.Header>
 									<GridViewColumnHeader FontWeight="Bold">Filter</GridViewColumnHeader>
@@ -1414,6 +1560,151 @@ function Invoke-MSGraphGetRequestWithMSGraphAllPages {
     }
 }
 
+
+function Get-CheckedInUsersGroupMemberships {
+    param (
+        [Parameter(Mandatory = $false)]
+        $SelectedUser=$false
+    )
+
+	if($SelectedUser) {
+		Write-Verbose "Get group memberships for user $($SelectedUser.UserPrincipalName)"
+	} else {
+		Write-Verbose "Get group memberships for latest signed-in user"
+	}
+
+
+	# Get Logged on users information
+    [String]$usersLoggedOn = @()
+
+	# Sort Descending by lastLogOnDateTime property to get last logon first (topmost)
+	# Get more information from first (latest) login user and add information to ToolTip
+	$ProcessingLatestCheckinUser = $True
+	foreach($LoggedOnUser in ($Script:IntuneManagedDevice.usersLoggedOn | Sort-Object -Property lastLogOnDateTime -Descending)) {
+        # Check we have valid GUID
+        if([System.Guid]::Parse($LoggedOnUser.userId)) {
+			if(($ProcessingLatestCheckinUser -and ($SelectedUser -eq $false)) -or (($ProcessingLatestCheckinUser) -and ($LoggedOnUser.userId -eq $SelectedUser.id))) {
+				
+				if($LoggedOnUser.userId -eq $Script:PrimaryUser.id) {
+					# LoggedOnUser is PrimaryUser or SelectedUser is PrimaryUser
+					Write-Verbose "Selected LoggedOnUser is PrimaryUser"
+					$Script:LatestCheckedinUser = $Script:PrimaryUser
+					
+				} else {
+					Write-Verbose "Selected LoggedOnUser is NOT PrimaryUser"
+					# Get user information with all properties
+					$url = "https://graph.microsoft.com/beta/users/$($LoggedOnUser.userId)?`$select=*"
+					
+					# Add to script wide variable so our Menu action can read userId
+					$Script:LatestCheckedinUser = Invoke-MSGraphGetRequestWithMSGraphAllPages $url
+				}
+				
+				# Make sure we don't get here on next round (checked-in user)
+				$ProcessingLatestCheckinUser = $False
+				
+				# This is used to fill information to Recent check-ins textBox in the end of foreach loop
+				$AADuser = $Script:LatestCheckedinUser | Select-Object -Property id,userPrincipalName,lastLogOnDateTime
+				
+				if(-not $SelectedUser) {
+					Write-Verbose "Latest signed-in user is $($AADuser.userPrincipalName)"
+				}
+				
+				# Add info to Latest Checked-in User Tooltip
+				$WPFtextBlock_LatestCheckInUser_textBox_ToolTip_UPN.Text = $Script:LatestCheckedinUser.userPrincipalName
+			
+				$BasicInfo = ($Script:LatestCheckedinUser | Select-Object -Property accountEnabled,displayName,userPrincipalName,email,userType,mobilePhone,jobTitle,department,companyName,employeeId,employeeType,streetAddress,postalCode,state,country,officeLocation,usageLocation | Format-List | Out-String).Trim()
+				$WPFtextBlock_LatestCheckInUser_textBox_ToolTip_BasicInfo.Text = $BasicInfo
+
+				$proxyAddressesToolTip = ($Script:LatestCheckedinUser.proxyAddresses | Format-List | Out-String).Trim()
+				$WPFtextBlock_LatestCheckInUser_textBox_ToolTip_proxyAddresses.Text = $proxyAddressesToolTip
+
+				$otherMailsToolTip = ($Script:LatestCheckedinUser.otherMails | Format-List | Out-String).Trim()
+				$WPFtextBlock_LatestCheckInUser_textBox_ToolTip_otherMails.Text = $otherMailsToolTip
+
+				$onPremisesAttributesToolTip = ($Script:LatestCheckedinUser | Select-Object -Property onPremisesSamAccountName, onPremisesUserPrincipalName, onPremisesSyncEnabled, onPremisesLastSyncDateTime, onPremisesDomainName, onPremisesDistinguishedName,onPremisesImmutableId | Format-List | Out-String).Trim()
+				$WPFtextBlock_LatestCheckInUser_textBox_ToolTip_onPremisesAttributes.Text = $onPremisesAttributesToolTip
+
+				$onPremisesExtensionAttributesToolTip = ($Script:LatestCheckedinUser.onPremisesExtensionAttributes | Format-List | Out-String).Trim()
+				$WPFtextBlock_LatestCheckInUser_textBox_ToolTip_onPremisesExtensionAttributes.Text = $onPremisesExtensionAttributesToolTip
+
+				# Add info to right side Overview tabItem
+				$WPFTextBlock_Overview_LatestCheckedInUserName.Text = "Latest or Selected Checked-in User: $($Script:LatestCheckedinUser.userPrincipalName)"
+				$WPFTextBox_Overview_LatestCheckedInUser.Text = $BasicInfo
+				
+				# Add info to right side Latest Checked-In User JSON tabItem textBox
+				$WPFLatestCheckedInUser_json_textBox.Text = $Script:LatestCheckedinUser | ConvertTo-Json -Depth 5
+				
+				# Enable Latest Checked-In User right click menus
+				$WPFLatest_CheckIn_User_Menu_Copy.isEnabled = $True
+				$WPFLatest_CheckIn_User_Menu_Copy_Menu_OpenLatestCheckInUserInBrowser.isEnabled = $True
+				
+
+				# Get Latest LoggedOn User Groups memberOf
+				$url = "https://graph.microsoft.com/beta/users/$($Script:LatestCheckedinUser.id)/memberOf?_=1577625591876"
+				$Script:LatestCheckedInUserGroupsMemberOf = Invoke-MSGraphGetRequestWithMSGraphAllPages $url
+				if($Script:LatestCheckedInUserGroupsMemberOf) {
+
+					# DEBUG $Script:LatestCheckedInUserGroupsMemberOf -> Paste json data to text editor
+					#$Script:LatestCheckedInUserGroupsMemberOf | ConvertTo-Json -Depth 4 | Set-ClipBoard
+
+					$Script:LatestCheckedInUserGroupsMemberOf = Add-AzureADGroupGroupTypeExtraProperties $Script:LatestCheckedInUserGroupsMemberOf
+					
+					Write-Verbose "Add latest checkedin user's AzureAD groups devices and users member count custom properties"
+					$Script:LatestCheckedInUserGroupsMemberOf = Add-AzureADGroupDevicesAndUserMemberCountExtraProperties $Script:LatestCheckedInUserGroupsMemberOf
+
+					[Array]$script:LatestCheckedInUserGroupMembershipsObservableCollection = [Array]$Script:LatestCheckedInUserGroupsMemberOf | Sort-Object -Property displayName
+					
+					$WPFlistView_LatestCheckedInUser_GroupMemberships.Itemssource = $script:LatestCheckedInUserGroupMembershipsObservableCollection
+
+					# Change TabItem Header text to include checked-in user UPN also
+					$WPFTabItem_LatestCheckedInUser_GroupMembershipsTAB_Header.Text = "Checked-In User Group Memberships ($($AADuser.userPrincipalName))"
+
+					# Enable LatestCheckedInUser Group Memberships right click menus
+					$WPFListView_GridTabItem_LatestCheckedInUser_GroupMembershipsTAB_Menu_Copy_DynamicRules.isEnabled = $True
+					$WPFListView_GridTabItem_LatestCheckedInUser_GroupMembershipsTAB_Menu_Copy_JSON.isEnabled = $True
+					$WPFListView_GridTabItem_LatestCheckedInUser_GroupMembershipsTAB_Menu_Open_Group_In_Browser.isEnabled = $True
+
+					# Set ToolTip to TabItem Header showing all Azure AD Groups
+					$LatestCheckedInUserGroupsMemberOfToolTip = [array]$null
+					$Script:LatestCheckedInUserGroupsMemberOf | Sort-Object -Property displayName | Foreach { $LatestCheckedInUserGroupsMemberOfToolTip += "$($_.displayName)`n" }
+					$WPFTextBlock_TabItem_LatestCheckedInUser_GroupMembershipsTAB_Header_ToolTip.Text = $LatestCheckedInUserGroupsMemberOfToolTip
+
+				} else {
+					Write-Host "Did not find any groups for user $($Script:LatestCheckedinUser.userPrincipalName)"
+				}
+
+			} else {
+				# Get user information
+				$url = "https://graph.microsoft.com/beta/users/$($LoggedOnUser.userId)?`$select=id,displayName,mail,userPrincipalName"
+				$AADuser = Invoke-MSGraphGetRequestWithMSGraphAllPages $url
+			}
+        }
+        #$usersLoggedOn += "$($AADuser.mail)`n"
+		$usersLoggedOn += "$($AADuser.userPrincipalName)`n"
+		$lastLogOnDateTimeLocalTimeZone = (Get-Date $LoggedOnUser.lastLogOnDateTime).ToLocalTime()
+		$lastLogOnDateTime = Get-Date $lastLogOnDateTimeLocalTimeZone -Format 'yyyy-MM-dd HH:mm:ss'
+        $usersLoggedOn += "$lastLogOnDateTime`n`n"
+		
+		# DEBUG
+		#$script:ComboItemsInApplicationSelectUserComboBoxSource | ConvertTo-Json | Set-Clipboard
+
+		# Add user to User select dropdown selection only if it does not already exists in list
+		if($script:ComboItemsInApplicationSelectUserComboBoxSource | Where-Object UserPrincipalName -Like "$($AADuser.UserPrincipalName)*" ) {
+			# User is already in list so skip this user
+			# so doing nothing
+		} else {
+			# Add user object to Application Assignments user select dropdown combobox source
+			$script:ComboItemsInApplicationSelectUserComboBoxSource += $AADuser
+		}
+    }
+    $WPFIntuneDeviceDetails_RecentCheckins_textBox.Text = $usersLoggedOn
+	
+	
+}
+
+
+
+
 function Get-ApplicationsWithAssignments {
 	Param(
 		[Parameter(Mandatory=$false)]
@@ -1507,6 +1798,474 @@ function Get-ApplicationsWithAssignments {
 		
 		return $false
 	}
+}
+
+
+function Get-MobileAppIntentsForSpecifiedUser {
+	Param(
+		[Parameter(Mandatory=$true,
+			HelpMessage = 'Enter User id')]
+			$UserId,
+		[Parameter(Mandatory=$true,
+			HelpMessage = 'Enter Intune Device id')]
+			$IntuneDeviceId
+	)
+
+	$script:AppsAssignmentsObservableCollection = @()
+
+	# Get all applications targeted to specific user AND device
+	# if there is no Primary User then we get only device targeted applications
+	# We will get all device AND user targeted apps. We will need to figure out which apps came from which AzureAD Group targeting
+
+	# Intune original request
+	#$url = "https://graph.microsoft.com/beta/users('$($Script:IntuneManagedDevice.userId)')/mobileAppIntentAndStates('$IntuneDeviceId')"
+
+	# Using Primary User id
+	$url = "https://graph.microsoft.com/beta/users('$($UserId)')/mobileAppIntentAndStates('$IntuneDeviceId')"
+
+	# Send MSGraph request
+	$mobileAppIntentAndStates = Invoke-MSGraphGetRequestWithMSGraphAllPages $url
+	if($mobileAppIntentAndStates.mobileAppList) {
+		$mobileAppIntentAndStatesMobileAppList = $mobileAppIntentAndStates.mobileAppList
+		Write-Verbose "Found $($mobileAppIntentAndStatesMobileAppList.Count) App Intents and States"
+	} else {
+		$mobileAppIntentAndStatesMobileAppList = $null
+		Write-Verbose "Did not find any App Intents and States!"
+		return $False
+	}
+
+	# We duplicate $mobileAppIntentAndStatesMobileAppList and remove every app in every foreach loop if we find assignments
+	# If for any reason we don't find Assignment targeted to either All Users, All Devices, member of Device group or member of Primary User group
+	# then we will know that at the end
+	# Case could be that we have nested groups targeting so we actually don't know which nested group was original assignment reason
+	# So far we will report source to be unknown. Maybe in the future releases we can do recursive group membership search
+	# to find out why application is targeted to device (this could actually be very important information)
+	$CopyOfMobileAppIntentAndStatesMobileAppList = $mobileAppIntentAndStatesMobileAppList
+
+	$odatatype = $null
+	$assignmentGroup = $null
+
+	# Go through all Application Assignments for this specific device and primary user
+	# Create new object (for ListView) when ever we find assignment targeted to device and/or user
+	foreach ($mobileAppIntentAndStatesMobileApp in $mobileAppIntentAndStatesMobileAppList) {
+
+		$assignmentGroup = 'unknown'
+		$YodamiittiCustomGroupMembers = 'N/A'
+		$AppHadAssignments = $false
+		$displayName = $null
+		$properties = $null
+		$displayNameToolTip = $null
+
+		# Get Application information with Assignment details
+		# Get it once and use it many times
+		$App = $Script:AppsWithAssignments | Where-Object { $_.id -eq "$($mobileAppIntentAndStatesMobileApp.applicationId)" }
+		#$App
+
+		$displayNameToolTip = $App.description
+
+		# Remove #microsoft.graph. from @odata.type
+		$odatatype = $App.'@odata.type'
+		$odatatype = $odatatype.Replace('#microsoft.graph.', '')
+
+		if ($App.licenseType -eq 'offline') {
+			$displayName = "$($App.displayname) (offline)"
+		}
+		else {
+			$displayName = "$($App.displayname)"
+		}
+
+		# Go through all Assignments in Application
+		# Notice we can have at least 4 different Assignments showing here so we actually need to check every Assignment
+		# All Users, All Devices, group specific included, group specific excluded
+		# And Available and Required types of assignment
+		# Excluded assignments are not available for All Users and All Devices
+		Foreach ($Assignment in $App.Assignments) {
+			
+			# We will see Assignment which are not targeted to this device so we need to exclude those out
+			
+			$IncludeApplicationAssignmentInSummary = $false
+			$context = '_unknown'
+			$contextToolTip = $null
+			$assignmentGroup = $null
+			$YodamiittiCustomGroupMembers = 'N/A'
+			$assignmentGroupId = $null
+			$AssignmentGroupToolTip = $null
+
+			$assignmentFilterDisplayName = $null
+			$assignmentFilterId = $null
+			$FilterToolTip = $null
+			$FilterMode = $null
+			
+			# Cast as string so our column sorting works
+			# DID NOT WORK for fixing sorting
+			$YodamiittiCustomMembershipType = [String]''
+
+			if ($Assignment.target.'@odata.type' -eq '#microsoft.graph.allLicensedUsersAssignmentTarget') {
+				# Special case for All Users
+				$assignmentGroup = 'All Users'
+				$context = 'User'
+				$contextToolTip = 'Built-in All Users group'
+				$AssignmentGroupToolTip = 'Built-in All Users group'
+
+				$YodamiittiCustomGroupMembers = ''
+
+				$IncludeApplicationAssignmentInSummary = $true
+			}
+			
+			if ($Assignment.target.'@odata.type' -eq '#microsoft.graph.allDevicesAssignmentTarget') {
+				# Special case for All Devices
+				$assignmentGroup = 'All Devices'
+				$context = 'Device'
+				$contextToolTip = 'Built-in All Devices group'
+				$AssignmentGroupToolTip = 'Built-in All Devices group'
+
+				$YodamiittiCustomGroupMembers = ''
+
+				$IncludeApplicationAssignmentInSummary = $true
+			}
+			
+			if (($Assignment.target.'@odata.type' -ne '#microsoft.graph.allLicensedUsersAssignmentTarget') -and ($Assignment.target.'@odata.type' -ne '#microsoft.graph.allDevicesAssignmentTarget')) {
+
+				# Group based assignment. We need to get AzureAD Group Name
+				# #microsoft.graph.groupAssignmentTarget
+
+				# Test if device is member of this group
+				if($Script:deviceGroupMemberships | Where-Object { $_.id -eq $Assignment.target.groupId}) {
+					$context = 'Device'
+					$contextToolTip = "$($Script:IntuneManagedDevice.deviceName)"
+
+					#$assignmentGroup = $Script:deviceGroupMemberships | Where-Object { $_.id -eq $Assignment.target.groupId} | Select-object -ExpandProperty displayName
+
+					$assignmentGroupObject = $Script:deviceGroupMemberships | Where-Object { $_.id -eq $Assignment.target.groupId}
+					
+					$assignmentGroup = $assignmentGroupObject.displayName
+					$assignmentGroupId = $assignmentGroupObject.id
+					
+					# Create Group Members column information
+					$DevicesCount = $assignmentGroupObject.YodamiittiCustomGroupMembersCountDevices
+					$UsersCount = $assignmentGroupObject.YodamiittiCustomGroupMembersCountUsers
+					#$YodamiittiCustomGroupMembers = "$DevicesCount devices, $UsersCount users"
+					$YodamiittiCustomGroupMembers = ''
+					if($DevicesCount -gt 0) { $YodamiittiCustomGroupMembers += "$DevicesCount devices " }
+					if($UsersCount -gt 0) { $YodamiittiCustomGroupMembers += "$UsersCount users " }
+					
+					
+					#$GroupType = Add-AzureADGroupGroupTypeExtraProperties $assignmentGroupObject
+					$AssignmentGroupToolTip = "$($assignmentGroupObject.membershipRule)"
+					
+					$YodamiittiCustomMembershipType = $assignmentGroupObject.YodamiittiCustomMembershipType
+					
+					$IncludeApplicationAssignmentInSummary = $true
+
+				} else {
+					# Group not found on member of devicegroups
+				}
+
+
+				# Test if primary user is member of assignment group
+				#if($Script:PrimaryUserGroupsMemberOf | Where-Object { $_.id -eq $Assignment.target.groupId}) {
+				if(($Script:PrimaryUserGroupsMemberOf | Where-Object { $_.id -eq $Assignment.target.groupId}) -and ($UserId -eq $Script:PrimaryUser.id)) {
+					# Process PrimaryUser's group memberships
+					
+					Write-Verbose "Checking Application assignment group from PrimaryUser's group memberships"
+					
+					if($assignmentGroup) {
+						# Device also is member of this group. Now we got mixed User and Device memberships
+						# Maybe not good practise but it is possible
+
+						$context = '_Device/User'
+					} else {
+						$context = 'User'
+						#$assignmentGroup = $Script:PrimaryUserGroupsMemberOf | Where-Object { $_.id -eq $Assignment.target.groupId} | Select-object -ExpandProperty displayName
+						
+						$assignmentGroupObject = $Script:PrimaryUserGroupsMemberOf | Where-Object { $_.id -eq $Assignment.target.groupId}
+						
+						$assignmentGroup = $assignmentGroupObject.displayName
+						$assignmentGroupId = $assignmentGroupObject.id
+						
+						# Create Group Members column information
+						$DevicesCount = $assignmentGroupObject.YodamiittiCustomGroupMembersCountDevices
+						$UsersCount = $assignmentGroupObject.YodamiittiCustomGroupMembersCountUsers
+						#$YodamiittiCustomGroupMembers = "$DevicesCount devices, $UsersCount users"
+						$YodamiittiCustomGroupMembers = ''
+						if($DevicesCount -gt 0) { $YodamiittiCustomGroupMembers += "$DevicesCount devices " }
+						if($UsersCount -gt 0) { $YodamiittiCustomGroupMembers += "$UsersCount users " }							
+
+						$AssignmentGroupToolTip = "$($assignmentGroupObject.membershipRule)"
+						
+						$YodamiittiCustomMembershipType = $assignmentGroupObject.YodamiittiCustomMembershipType
+						
+					}
+					$IncludeApplicationAssignmentInSummary = $true
+					$contextToolTip = $Script:PrimaryUser.UserPrincipalName
+				} else {
+					# Group not found on member of PrimaryUser's groups
+				}
+				
+				
+				if(($Script:LatestCheckedInUserGroupsMemberOf | Where-Object { $_.id -eq $Assignment.target.groupId}) -and ($UserId -ne $Script:PrimaryUser.id)) {
+					# Process selected User's or recently loggedin user's group memberships
+
+					Write-Verbose "Checking Application assignment group from select user's ($UserId) group memberships"
+
+					# DEBUG
+					#Write-Verbose "DEBUG: Process selected User's or recently loggedin user's group memberships"
+					#Write-Verbose "DEBUG: UserId: $UserId"
+					#Write-Verbose "DEBUG: Assignment.target.groupId: $($Assignment.target.groupId)"
+					#$Script:LatestCheckedInUserGroupsMemberOf | ConvertTo-Json -Depth 5 | Set-Clipboard
+					
+					if($assignmentGroup) {
+						# Device also is member of this group. Now we got mixed User and Device memberships
+						# Maybe not good practise but it is possible
+
+						$context = '_Device/User'
+					} else {
+						$context = 'User'
+						#$assignmentGroup = $Script:PrimaryUserGroupsMemberOf | Where-Object { $_.id -eq $Assignment.target.groupId} | Select-object -ExpandProperty displayName
+						
+						$assignmentGroupObject = $Script:LatestCheckedInUserGroupsMemberOf | Where-Object { $_.id -eq $Assignment.target.groupId}
+						
+						$assignmentGroup = $assignmentGroupObject.displayName
+						$assignmentGroupId = $assignmentGroupObject.id
+						
+						# Create Group Members column information
+						$DevicesCount = $assignmentGroupObject.YodamiittiCustomGroupMembersCountDevices
+						$UsersCount = $assignmentGroupObject.YodamiittiCustomGroupMembersCountUsers
+						#$YodamiittiCustomGroupMembers = "$DevicesCount devices, $UsersCount users"
+						$YodamiittiCustomGroupMembers = ''
+						if($DevicesCount -gt 0) { $YodamiittiCustomGroupMembers += "$DevicesCount devices " }
+						if($UsersCount -gt 0) { $YodamiittiCustomGroupMembers += "$UsersCount users " }							
+
+						$AssignmentGroupToolTip = "$($assignmentGroupObject.membershipRule)"
+						
+						$YodamiittiCustomMembershipType = $assignmentGroupObject.YodamiittiCustomMembershipType
+						
+					}
+					$IncludeApplicationAssignmentInSummary = $true
+					$contextToolTip = $Script:LatestCheckedinUser.UserPrincipalName
+				} else {
+					# Group not found on member of selected or latest signed-in user
+				}
+
+			}
+
+
+			if($IncludeApplicationAssignmentInSummary) {
+
+				# Set included/excluded attribute
+				$AppIncludeExclude = ''
+				if ($Assignment.target.'@odata.type' -eq '#microsoft.graph.groupAssignmentTarget') {
+					$AppIncludeExclude = 'Included'
+				}
+				if ($Assignment.target.'@odata.type' -eq '#microsoft.graph.exclusionGroupAssignmentTarget') {
+					$AppIncludeExclude = 'Excluded'
+				}
+
+				$assignmentIntent = $Assignment.intent
+				
+				if(($assignmentIntent -eq 'available') -and ($mobileAppIntentAndStatesMobileApp.installState -eq 'unknown')) {
+					$mobileAppIntentAndStatesMobileApp.installState = 'Available for install'
+				}
+
+				if(($assignmentIntent -eq 'required') -and ($mobileAppIntentAndStatesMobileApp.installState -eq 'unknown')) {
+					$mobileAppIntentAndStatesMobileApp.installState = 'Waiting for install status'
+				}
+
+				$assignmentFilterId = $Assignment.target.deviceAndAppManagementAssignmentFilterId
+				#$assignmentFilterDisplayName = $AllIntuneFilters | Where-Object { $_.id -eq $assignmentFilterId } | Select-Object -ExpandProperty displayName
+				
+				$assignmentFilterObject = $AllIntuneFilters | Where-Object { $_.id -eq $assignmentFilterId }
+
+				$assignmentFilterDisplayName = $assignmentFilterObject.displayName
+				$assignmentFilterId = $assignmentFilterObject.id
+				$FilterToolTip = $assignmentFilterObject.rule
+
+				$FilterMode = $Assignment.target.deviceAndAppManagementAssignmentFilterType
+				if($FilterMode -eq 'None') {
+					$FilterMode = $null
+				}
+
+				# Cast variable types to make sure column click based sorting works
+				# Sorting may break if there are different kind of objects
+				$properties = @{
+					context                          = [String]$context
+					contextToolTip					 = [String]$contextToolTip
+					odatatype                        = [String]$odatatype
+					displayname                      = [String]$displayName
+					version                          = [String]$mobileAppIntentAndStatesMobileApp.displayVersion
+					assignmentIntent                 = [String]$assignmentIntent
+					IncludeExclude                   = [String]$AppIncludeExclude
+					assignmentGroup                  = [String]$assignmentGroup
+					YodamiittiCustomGroupMembers     = [String]$YodamiittiCustomGroupMembers
+					assignmentGroupId                = [String]$assignmentGroupId
+					installState                     = [String]$mobileAppIntentAndStatesMobileApp.installState
+					lastModifiedDateTime             = $App.lastModifiedDateTime
+					YodamiittiCustomMembershipType   = [String]$YodamiittiCustomMembershipType
+					id                               = $App.id
+					filter							 = [String]$assignmentFilterDisplayName
+					filterId						 = [String]$assignmentFilterId
+					filterMode						 = [String]$FilterMode
+					filterTooltip                    = [String]$FilterTooltip
+					AssignmentGroupToolTip 			 = [String]$AssignmentGroupToolTip
+					displayNameToolTip               = [String]$displayNameToolTip
+				}
+
+				# Create new custom object every time inside foreach-loop
+				# If you create custom object outside of foreach then you would edit same custom object on every foreach cycle resulting only 1 app in custom object array
+				$CustomObject = New-Object -TypeName PSObject -Prop $properties
+
+				# Add custom object to our custom object array.
+				$script:AppsAssignmentsObservableCollection += $CustomObject
+			}
+		}
+		
+		# Remove App from our copy object array if any assignment was found
+		$AppWithAssignment = $script:AppsAssignmentsObservableCollection | Where-Object { $_.id -eq $mobileAppIntentAndStatesMobileApp.applicationId }
+		if ($AppWithAssignment) {
+			# App had Assignment so we remove App from copy array
+
+			# We will end up having only Apps which we did NOT find assignments in this array
+			# This is reserved for possible future features
+			$CopyOfMobileAppIntentAndStatesMobileAppList = $CopyOfMobileAppIntentAndStatesMobileAppList | Where-Object { $_.applicationId -ne $mobileAppIntentAndStatesMobileApp.applicationId}
+
+		} else {
+			# We could not determine Assignment source
+			
+			# Set variable which we return from this function
+			$UnknownAssignmentGroupFound = $true
+			
+			# One option is that our cache data was not updated even if data was updated in Intune
+			# Some configuration policies may not change lastModifiedDateTime property if only assignments were changed
+
+			$context = '_unknown'
+ 
+			# App Intent requiredInstall is different than App Assignment so we remove word Install
+			$assignmentIntent = $mobileAppIntentAndStatesMobileApp.mobileAppIntent
+			$assignmentIntent = $assignmentIntent.Replace('Install','')
+
+			$AppIncludeExclude = ''
+			$assignmentGroup = 'unknown (possible nested group or removed assignment)'
+			$YodamiittiCustomGroupMembers = 'N/A'
+	
+			# Cast variable types to make sure column click based sorting works
+			# Sorting may break if there are different kind of objects
+			$properties = @{
+				context                          = [String]$context
+				contextToolTip					 = [String]''
+				odatatype                        = [String]$odatatype
+				displayname                      = [String]$displayName
+				version                          = [String]$mobileAppIntentAndStatesMobileApp.displayVersion
+				assignmentIntent                 = [String]$assignmentIntent
+				IncludeExclude                   = [String]$AppIncludeExclude
+				assignmentGroup                  = [String]$assignmentGroup
+				YodamiittiCustomGroupMembers     = [String]$YodamiittiCustomGroupMembers
+				assignmentGroupId                = [String]$null
+				installState                     = [String]$mobileAppIntentAndStatesMobileApp.installState
+				lastModifiedDateTime             = $App.lastModifiedDateTime
+				YodamiittiCustomMembershipType   = [String]''
+				id                               = $App.id
+				filter							 = [String]''
+				filterId						 = [String]$null
+				filterMode						 = [String]''
+				filterTooltip                    = [String]''
+				AssignmentGroupToolTip 			 = [String]''
+				displayNameToolTip               = [String]''
+			}
+			$CustomObject = New-Object -TypeName PSObject -Prop $properties
+			$script:AppsAssignmentsObservableCollection += $CustomObject
+		}
+	}
+
+	if($script:AppsAssignmentsObservableCollection.Count -gt 1) {
+		# ItemsSource works if we are sorting 2 or more objects
+		$WPFlistView_ApplicationAssignments.Itemssource = $script:AppsAssignmentsObservableCollection | Sort-Object -Property context, @{expression = 'assignmentIntent';descending = $true},IncludeExclude,displayName
+	} else {
+		# Only 1 object so we can't do sorting
+		# If we try to sort here then our object array breaks and it does not work for ItemsSource
+		# Cast as array because otherwise it will fail
+		$WPFlistView_ApplicationAssignments.Itemssource = [array]$script:AppsAssignmentsObservableCollection
+	}
+
+	# If we got here then we should have at least 1 App Intent and State
+	return $mobileAppIntentAndStatesMobileAppList.Count
+}
+
+
+function Download-IntunePostTypeReport {
+	Param(
+		[Parameter(Mandatory=$true,
+			HelpMessage = 'Enter Graph API Url')]
+		$GraphAPIUrl,
+		[Parameter(Mandatory=$true,
+			HelpMessage = 'Enter Graph API Post request')]
+		$GraphAPIPostRequest
+	)
+
+	# Initialize variables
+	# Not actually needed here
+	# but helps coder to think about loop logic
+	$MSGraphRequest = $null
+	$ConfigurationPoliciesReportForDevice = @()
+	$count = $null
+
+	do {
+		Start-Sleep -Milliseconds $TimeOutBetweenGraphAPIRequests
+
+		$GraphAPIPostRequestJSON = $GraphAPIPostRequest | ConvertFrom-Json
+
+		$top = $GraphAPIPostRequestJSON.top
+		$skip = $GraphAPIPostRequestJSON.skip
+
+		# DEBUG
+		#Write-Verbose "`$top=$top"
+		#Write-Verbose "`$skip=$skip"
+
+		$MSGraphRequest = Invoke-MSGraphRequest -Url $url -Content $GraphAPIPostRequest.ToString() -HttpMethod 'POST'
+		$Success = $?
+
+		if($Success) {
+			#Write-Verbose "Success"
+
+			# Objectify report results
+			$MSGraphRequestObjectified = Objectify_JSON_Schema_and_Data_To_PowershellObjects $MSGraphRequest
+			
+			# Save results to variable
+			$ConfigurationPoliciesReportForDevice += $MSGraphRequestObjectified
+
+			# Get Count of results
+			$count = $MSGraphRequestObjectified.Count
+
+			if($count -ge $top) {
+				# Increase report skip-value with amount of results we got earlier (should be same as top)
+				# to get next batch of results
+				$skip += $count
+
+				# Increase count in json and convert to text
+				#$GraphAPIPostRequestJSON.top = $top
+				$GraphAPIPostRequestJSON.skip = $skip
+
+				# Convert json to text
+				$GraphAPIPostRequest = $GraphAPIPostRequestJSON | ConvertTo-Json -Depth 3
+
+			} else {
+				# Got all results
+
+				#Write-Verbose "DEBUG"
+				#Write-Verbose "Got all policy report results"
+				#Write-Verbose "`$count=$count"
+				#Write-Verbose "`$top=$top"
+				#Write-Verbose "`$skip=$skip"
+				Write-Verbose "Found $($ConfigurationPoliciesReportForDevice.Count) assignment objects"
+			}
+
+		} else {
+			# Invoke-MSGraphRequest failed
+			Write-Error "Error getting Intune device Configuration Assignment information"
+			return 1
+		}
+	} while ($count -ge $top)
+
+	return $ConfigurationPoliciesReportForDevice
 }
 
 
@@ -1710,6 +2469,9 @@ function Add-AzureADGroupGroupTypeExtraProperties {
 		$AzureADGroups
 	)
 
+	# DEBUG Export $group to clipboard for testing off the script
+	#$AzureADGroups | ConvertTo-Json -Depth 5 | Set-Clipboard
+
 	# Add new properties groupType and MembershipType
 	foreach($group in $AzureADGroups) {
 
@@ -1731,6 +2493,15 @@ function Add-AzureADGroupGroupTypeExtraProperties {
 			}
 		}
 
+
+		# Check if group is directoryRole which is not actual AzureAD Group
+		if($group.'@odata.type' -eq '#microsoft.graph.directoryRole') {
+			# Group is NOT security group at all
+			# DirectoryRoles are not Azure AD groups
+			$group | Add-Member -MemberType noteProperty -Name YodamiittiCustomGroupType -Value 'DirectoryRole'
+		}
+
+
 		if($group.groupTypes -contains 'DynamicMembership') {
 			# Dynamic group
 			$group | Add-Member -MemberType noteProperty -Name YodamiittiCustomMembershipType -Value 'Dynamic'
@@ -1743,6 +2514,196 @@ function Add-AzureADGroupGroupTypeExtraProperties {
 	return $AzureADGroups
 }
 
+
+function Add-AzureADGroupDevicesAndUserMemberCountExtraProperties {
+	Param(
+		[Parameter(Mandatory=$true,
+			ValueFromPipeline=$true,
+			ValueFromPipelineByPropertyName=$true, 
+			Position=0)]
+		$AzureADGroups
+	)
+
+	Write-Verbose "Getting AzureAD groups membercount for $($AzureADGroups.Count) groups"
+
+	for ($i=0; $i -lt $AzureADGroups.count; $i+=20){
+
+		# Create requests hashtable
+		$requests_devices_count = @{}
+		$requests_users_count = @{}
+
+		# Create elements array inside hashtable
+		$requests_devices_count.requests = @()
+		$requests_users_count.requests = @()
+
+		# Create max 20 requests in for-loop
+		# For-loop will end automatically when loop counter is same as total count of $AzureADGroups
+		for ($a=$i; (($a -lt $i+20) -and ($a -lt $AzureADGroups.count)); $a+=1) {
+
+			if(($AzureADGroups[$a]).'@odata.type' -eq '#microsoft.graph.directoryRole') {
+				# Azure DirectoryRole is not AzureAD Group
+				$GraphAPIBatchEntry_DevicesCount = @{
+					id = ($a+1).ToString()
+					"method" = "GET"
+					"url" = "/directoryRoles/$(($AzureADGroups[$a]).id)"
+				}
+
+			} else {
+				# We should have AzureAD Group
+				$GraphAPIBatchEntry_DevicesCount = @{
+					id = ($a+1).ToString()
+					"method" = "GET"
+					"url" = "/groups/$(($AzureADGroups[$a]).id)/transitivemembers/microsoft.graph.device/`$count?ConsistencyLevel=eventual"
+				}
+			}
+
+			# Add GraphAPI Batch entry to requests array
+			$requests_devices_count.requests += $GraphAPIBatchEntry_DevicesCount
+
+			if(($AzureADGroups[$a]).'@odata.type' -eq '#microsoft.graph.directoryRole') {
+				# Azure DirectoryRole is not AzureAD Group
+				$GraphAPIBatchEntry_UsersCount = @{
+					id = ($a+1).ToString()
+					"method" = "GET"
+					"url" = "/directoryRoles/$(($AzureADGroups[$a]).id)"
+				}
+			} else {
+				# We should have AzureAD Group
+				$GraphAPIBatchEntry_UsersCount = @{
+					id = ($a+1).ToString()
+					"method" = "GET"
+					"url" = "/groups/$(($AzureADGroups[$a]).id)/transitivemembers/microsoft.graph.user/`$count?ConsistencyLevel=eventual"
+				}
+			}
+
+			
+			# Add GraphAPI Batch entry to requests array
+			$requests_users_count.requests += $GraphAPIBatchEntry_UsersCount
+			
+			# DEBUG/double check index numbers and groupNames
+			#Write-Host "`$a=$a   `$i=$i    GroupName=$($AzureADGroups[$a].displayName)"
+		}
+
+		# DEBUG
+		#$requests_devices_count | ConvertTo-Json
+		$requests_devices_count_JSON = $requests_devices_count | ConvertTo-Json
+
+		$url = 'https://graph.microsoft.com/beta/$batch'
+		$MSGraphRequest = Invoke-MSGraphRequest -Url $url -Content $requests_devices_count_JSON.ToString() -HttpMethod 'POST'
+		$Success = $?
+
+		if($Success) {
+			#Write-Host "Success"
+		} else {
+			# Invoke-MSGraphRequest failed
+			Write-Error "Error getting AzureAD groups devices count"
+			return 1
+		}
+
+		# Get AllMSGraph pages
+		# This is also workaround to get objects without assigning them from .Value attribute
+		$AzureADGroups_Devices_MemberCount_Batch_Result = Get-MSGraphAllPages -SearchResult $MSGraphRequest
+		$Success = $?
+
+		if($Success) {
+			#Write-Host "Success"
+		} else {
+			# Invoke-MSGraphRequest failed
+			Write-Error "Error getting AzureAD groups devices count"
+			return 1
+		}
+		
+		# DEBUG
+		#$AzureADGroups_Devices_MemberCount_Batch_Result
+
+		# Process results for devices count batch requests
+		Foreach ($response in $AzureADGroups_Devices_MemberCount_Batch_Result.responses) {
+			$GroupArrayIndex = $response.id - 1
+			if($response.status -eq 200) {
+				
+				if(($AzureADGroups[$GroupArrayIndex]).'@odata.type' -eq '#microsoft.graph.directoryRole') {
+					# DEBUG
+					#Write-Verbose "AzureAD directoryRole (arrayIndex=$GroupArrayIndex) $($AzureADGroups[$GroupArrayIndex].displayName)"
+
+					$AzureADGroups[$GroupArrayIndex] | Add-Member -MemberType noteProperty -Name YodamiittiCustomGroupMembersCountDevices -Value 'N/A'
+				} else {
+					# DEBUG
+					#Write-Verbose "AzureAD group (arrayIndex=$GroupArrayIndex) $($AzureADGroups[$GroupArrayIndex].displayName) adding devices count property: $($response.body)"
+					
+					$AzureADGroups[$GroupArrayIndex] | Add-Member -MemberType noteProperty -Name YodamiittiCustomGroupMembersCountDevices -Value $response.body					
+				}
+			} else {
+				Write-Error "Error getting devices count for AzureAD group $($AzureADGroups[$GroupArrayIndex].displayName)"
+				Write-Error "$($response | ConvertTo-Json)"
+			}
+		}
+
+
+		$requests_users_count_JSON = $requests_users_count | ConvertTo-Json
+
+		$url = 'https://graph.microsoft.com/beta/$batch'
+		$MSGraphRequest = Invoke-MSGraphRequest -Url $url -Content $requests_users_count_JSON.ToString() -HttpMethod 'POST'
+		$Success = $?
+
+		if($Success) {
+			#Write-Host "Success"
+		} else {
+			# Invoke-MSGraphRequest failed
+			Write-Error "Error getting AzureAD groups users count"
+			return 1
+		}
+
+		# Get AllMSGraph pages
+		# This is also workaround to get objects without assigning them from .Value attribute
+		$AzureADGroups_Users_MemberCount_Batch_Result = Get-MSGraphAllPages -SearchResult $MSGraphRequest
+		$Success = $?
+
+		if($Success) {
+			#Write-Host "Success"
+		} else {
+			# Invoke-MSGraphRequest failed
+			Write-Error "Error getting AzureAD groups users count"
+			return 1
+		}
+		
+		# DEBUG
+		#$AzureADGroups_Users_MemberCount_Batch_Result
+
+		# Process results for devices count batch requests
+		Foreach ($response in $AzureADGroups_Users_MemberCount_Batch_Result.responses) {
+			$GroupArrayIndex = $response.id - 1
+			if($response.status -eq 200) {
+				
+				if(($AzureADGroups[$GroupArrayIndex]).'@odata.type' -eq '#microsoft.graph.directoryRole') {
+					# DEBUG
+					#Write-Verbose "AzureAD directoryRole (arrayIndex=$GroupArrayIndex) $($AzureADGroups[$GroupArrayIndex].displayName)"
+
+					# Change "AzureAD Group" json to actual real directoryRole json which we just got from batch request
+					$AzureADGroups[$GroupArrayIndex] = $response.body
+					
+					$AzureADGroups[$GroupArrayIndex] | Add-Member -MemberType noteProperty -Name YodamiittiCustomGroupMembersCountUsers -Value 'N/A'
+					
+					# We need to add below properties again because we just replace whole object so we lost earlier customProperties
+					$AzureADGroups[$GroupArrayIndex] | Add-Member -MemberType noteProperty -Name YodamiittiCustomGroupMembersCountDevices -Value 'N/A' -Force
+					$AzureADGroups[$GroupArrayIndex] | Add-Member -MemberType noteProperty -Name YodamiittiCustomGroupType -Value 'DirectoryRole' -Force
+				} else {
+					# DEBUG
+					#Write-Verbose "AzureAD group (arrayIndex=$GroupArrayIndex) $($AzureADGroups[$GroupArrayIndex].displayName) adding users count property: $($response.body)"
+					
+					$AzureADGroups[$GroupArrayIndex] | Add-Member -MemberType noteProperty -Name YodamiittiCustomGroupMembersCountUsers -Value $response.body
+				}
+				
+				
+			} else {
+				Write-Error "Error getting users count for AzureAD group $($AzureADGroups[$GroupArrayIndex].displayName)"
+				Write-Error "$($response | ConvertTo-Json)"
+			}
+		}
+		
+	}     
+
+	return $AzureADGroups
+}
 
 function Fix-UrlSpecialCharacters {
 	Param (
@@ -1789,6 +2750,10 @@ function Update-QuickFilters {
 	{
 		"QuickFilterName":  "$("{0,-55} {1,-20}" -f "Quick filter: Devices Synced     in last  1 hour", "(Max $GraphAPITop devices)")",
         "QuickFilterGraphAPIFilter":  "(lastSyncDateTime gt $((Get-Date).ToUniversalTime().AddHours(-1) | Get-Date -uformat %G-%m-%dT%H:%M:%S.000Z))&`$top=$GraphAPITop"
+    },
+	{
+		"QuickFilterName":  "$("{0,-55} {1,-20}" -f "Quick filter: Devices Synced     in last 24 hours", "(Max $GraphAPITop devices)")",
+        "QuickFilterGraphAPIFilter":  "(lastSyncDateTime gt $((Get-Date).ToUniversalTime().AddHours(-24) | Get-Date -uformat %G-%m-%dT%H:%M:%S.000Z))&`$top=$GraphAPITop"
     },
 	{
 		"QuickFilterName":  "$("{0,-55} {1,-20}" -f "Quick filter: Devices Synced     today (since midnight)", "(Max $GraphAPITop devices)")",
@@ -2211,6 +3176,22 @@ function Get-DeviceInformation {
 	$Script:deviceGroupMemberships = $null
 	$Script:LatestCheckedinUser = $null
 	
+	# Prepare Application Assignments user select dropdown combobox source
+	# Add device (no primary user), primary user and logged on users to list
+	# Pre-Select either Primary User or device depending if there is primary user
+	$DeviceWithoutUserObject = [PSCustomObject]@{
+		primaryUserId     = '00000000-0000-0000-0000-000000000000'
+		id 				  = '00000000-0000-0000-0000-000000000000'
+		UserId 			  = '00000000-0000-0000-0000-000000000000'
+		userPrincipalName = 'Device without user'
+	}
+
+	# Create array for Select user ComboBox source objects
+	$script:ComboItemsInApplicationSelectUserComboBoxSource = @()
+	
+	# Add user object to Application Assignments user select dropdown combobox source
+	$script:ComboItemsInApplicationSelectUserComboBoxSource += $DeviceWithoutUserObject
+		
 	$IntuneDeviceId = $id
 	
 	# Get Intune device object
@@ -2284,6 +3265,7 @@ function Get-DeviceInformation {
 
         if($operatingSystemEdition -eq 'Enterprise') { $operatingSystemEdition = 'Ent' }
         if($operatingSystemEdition -eq 'Education') { $operatingSystemEdition = 'Edu' }
+		if($operatingSystemEdition -eq 'Windows 11 SE') { $operatingSystemEdition = 'SE' }
 
         # EthernetMacAddress
         $WPFEthernetMAC_textBox.Text = $AdditionalDeviceInformation.ethernetMacAddress
@@ -2424,12 +3406,28 @@ function Get-DeviceInformation {
                             $WindowsSupportEndsInDays = New-TimeSpan $CurrentDate 2023-06-13 | Select-Object -ExpandProperty Days
                         }
                     }
+			'10.0.19045.*' {   $Version = '10 22H2'
+                        if(($operatingSystemEdition -eq 'Ent') -or ($operatingSystemEdition -eq 'Edu')) {
+                            $WindowsSupportEndsInDays = New-TimeSpan $CurrentDate 2025-05-13 | Select-Object -ExpandProperty Days
+                        }
+                        if(($operatingSystemEdition -eq 'Home') -or ($operatingSystemEdition -like '*Pro*')) {
+                            $WindowsSupportEndsInDays = New-TimeSpan $CurrentDate 2024-05-14 | Select-Object -ExpandProperty Days
+                        }
+                    }
 			'10.0.22000.*' {   $Version = '11 21H2'
                         if(($operatingSystemEdition -eq 'Ent') -or ($operatingSystemEdition -eq 'Edu')) {
                             $WindowsSupportEndsInDays = New-TimeSpan $CurrentDate 2024-10-08 | Select-Object -ExpandProperty Days
                         }
-                        if(($operatingSystemEdition -eq 'Home') -or ($operatingSystemEdition -like '*Pro*')) {
+                        if(($operatingSystemEdition -eq 'Home') -or ($operatingSystemEdition -like '*Pro*') -or ($operatingSystemEdition -like '*SE*')) {
                             $WindowsSupportEndsInDays = New-TimeSpan $CurrentDate 2023-10-10 | Select-Object -ExpandProperty Days
+                        }
+                    }
+			'10.0.22621.*' {   $Version = '11 22H2'
+                        if(($operatingSystemEdition -eq 'Ent') -or ($operatingSystemEdition -eq 'Edu')) {
+                            $WindowsSupportEndsInDays = New-TimeSpan $CurrentDate 2025-10-14 | Select-Object -ExpandProperty Days
+                        }
+                        if(($operatingSystemEdition -eq 'Home') -or ($operatingSystemEdition -like '*Pro*') -or ($operatingSystemEdition -like '*SE*')) {
+                            $WindowsSupportEndsInDays = New-TimeSpan $CurrentDate 2024-10-08 | Select-Object -ExpandProperty Days
                         }
                     }
             Default {
@@ -2439,7 +3437,7 @@ function Get-DeviceInformation {
 
         if([double]$WindowsSupportEndsInDays -lt 0) {
             # Windows 10 support already ended
-            $OSVersionToolTip = "Windows 10 $($Script:IntuneManagedDevice.osVersion)`n`nWindows 10 Enterprise and Education support for this version has already ended $WindowsSupportEndsInDays days ago!`n`nUpdate device immediately!"
+            $OSVersionToolTip = "Version $($Script:IntuneManagedDevice.osVersion)`n`nSupport for this Windows version has already ended $WindowsSupportEndsInDays days ago!`n`nUpdate device immediately!"
             
             # Red background for OSVersion textbox
             $WPFOSVersion_textBox.Background = '#FF6347'
@@ -2447,7 +3445,7 @@ function Get-DeviceInformation {
 
         } elseif (([double]$WindowsSupportEndsInDays -ge 0) -and ([double]$WindowsSupportEndsInDays -le 90)) {
             # Windows 10 support is ending in 30 days
-            $OSVersionToolTip = "Windows 10 $($Script:IntuneManagedDevice.osVersion)`n`nWindows 10 Enterprise and Education support for this version is ending in $WindowsSupportEndsInDays days.`n`nSchedule Windows upgrade for this device."
+            $OSVersionToolTip = "Version $($Script:IntuneManagedDevice.osVersion)`n`nSupport for this Windows version is ending in $WindowsSupportEndsInDays days.`n`nSchedule Windows upgrade for this device."
             
             # Yellow background for OSVersion textbox
             $WPFOSVersion_textBox.Background = 'yellow'
@@ -2455,7 +3453,7 @@ function Get-DeviceInformation {
             
         } elseif([double]$WindowsSupportEndsInDays -gt 90) {
             # Windows 10 has support over 30 days
-            $OSVersionToolTip = "Windows 10 $($Script:IntuneManagedDevice.osVersion)`n`nWindows 10 Enterprise and Education support for this version will end in $WindowsSupportEndsInDays days."
+            $OSVersionToolTip = "Version $($Script:IntuneManagedDevice.osVersion)`n`nSupport for this Windows version will end in $WindowsSupportEndsInDays days."
 
             # Green background for OSVersion textbox
             $WPFOSVersion_textBox.Background = '#7FFF00'
@@ -2687,6 +3685,14 @@ function Get-DeviceInformation {
 
         if($Script:PrimaryUser) {
 
+			# Add user object to Application Assignments user select dropdown combobox source
+			# Create a COPY of object so we can change it's values without making change to original object
+			$script:ComboItemsInApplicationSelectUserComboBoxSource += $Script:PrimaryUser.PsObject.Copy()
+			
+			# Edit ComboItemsInApplicationSelectUserComboBoxSource PrimaryUser UserPrincipalName to (Primary User) UserPrincipalName
+			# $variable[-1] refers to last item in array which is latest added Primary User to our array
+			$script:ComboItemsInApplicationSelectUserComboBoxSource[-1].UserPrincipalName = "$($Script:PrimaryUser.UserPrincipalName) (Primary User)"
+
 			# Set PrimaryUser MenuItem ENABLED because we found user
 			$WPFprimaryUser_textBox_Menu_OpenPrimaryUserInBrowser.isEnabled = $True
 
@@ -2734,6 +3740,10 @@ function Get-DeviceInformation {
 				#$Script:PrimaryUserGroupsMemberOf | ConvertTo-Json -Depth 4 | Set-ClipBoard
 
 				$Script:PrimaryUserGroupsMemberOf = Add-AzureADGroupGroupTypeExtraProperties $Script:PrimaryUserGroupsMemberOf
+				
+				Write-Verbose "Add Primary User's AzureAD groups devices and users member count custom properties"
+				$Script:PrimaryUserGroupsMemberOf = Add-AzureADGroupDevicesAndUserMemberCountExtraProperties $Script:PrimaryUserGroupsMemberOf
+
 
 				$script:PrimaryUserGroupMembershipsObservableCollection = $Script:PrimaryUserGroupsMemberOf | Sort-Object -Property displayName
 
@@ -2778,108 +3788,8 @@ function Get-DeviceInformation {
     }
 
 
-    # Get Logged on users information
-    [String]$usersLoggedOn = @()
-
-	# Sort Descending by lastLogOnDateTime property to get last logon first (topmost)
-	# Get more information from first (latest) login user and add information to ToolTip
-	$ProcessingLatestCheckinUser = $True
-	foreach($LoggedOnUser in ($Script:IntuneManagedDevice.usersLoggedOn | Sort-Object -Property lastLogOnDateTime -Descending)) {
-        # Check we have valid GUID
-        if([System.Guid]::Parse($LoggedOnUser.userId)) {
-			if($ProcessingLatestCheckinUser) {
-				
-				# Check if LoggedOnUser is same than PrimaryUser
-				
-				if($LoggedOnUser.userId -ne $Script:PrimaryUser.id) {
-					# Get user information with all properties
-					$url = "https://graph.microsoft.com/beta/users/$($LoggedOnUser.userId)?`$select=*"
-					
-					# Add to script wide variable so our Menu action can read userId
-					$Script:LatestCheckedinUser = Invoke-MSGraphGetRequestWithMSGraphAllPages $url
-				} else {
-					# Latest LoggedOnUser is PrimaryUser
-					Write-Verbose "Latest LoggedOnUser is PrimaryUser"
-					$Script:LatestCheckedinUser = $Script:PrimaryUser
-				}
-				
-				# This is used to fill information to Recent check-ins textBox in the end of foreach loop
-				$AADuser = $Script:LatestCheckedinUser | Select-Object -Property id,userPrincipalName,lastLogOnDateTime
-				
-				# Add info to Latest Checked-in User Tooltip
-				$WPFtextBlock_LatestCheckInUser_textBox_ToolTip_UPN.Text = $Script:LatestCheckedinUser.userPrincipalName
-			
-				$BasicInfo = ($Script:LatestCheckedinUser | Select-Object -Property accountEnabled,displayName,userPrincipalName,email,userType,mobilePhone,jobTitle,department,companyName,employeeId,employeeType,streetAddress,postalCode,state,country,officeLocation,usageLocation | Format-List | Out-String).Trim()
-				$WPFtextBlock_LatestCheckInUser_textBox_ToolTip_BasicInfo.Text = $BasicInfo
-
-				$proxyAddressesToolTip = ($Script:LatestCheckedinUser.proxyAddresses | Format-List | Out-String).Trim()
-				$WPFtextBlock_LatestCheckInUser_textBox_ToolTip_proxyAddresses.Text = $proxyAddressesToolTip
-
-				$otherMailsToolTip = ($Script:LatestCheckedinUser.otherMails | Format-List | Out-String).Trim()
-				$WPFtextBlock_LatestCheckInUser_textBox_ToolTip_otherMails.Text = $otherMailsToolTip
-
-				$onPremisesAttributesToolTip = ($Script:LatestCheckedinUser | Select-Object -Property onPremisesSamAccountName, onPremisesUserPrincipalName, onPremisesSyncEnabled, onPremisesLastSyncDateTime, onPremisesDomainName, onPremisesDistinguishedName,onPremisesImmutableId | Format-List | Out-String).Trim()
-				$WPFtextBlock_LatestCheckInUser_textBox_ToolTip_onPremisesAttributes.Text = $onPremisesAttributesToolTip
-
-				$onPremisesExtensionAttributesToolTip = ($Script:LatestCheckedinUser.onPremisesExtensionAttributes | Format-List | Out-String).Trim()
-				$WPFtextBlock_LatestCheckInUser_textBox_ToolTip_onPremisesExtensionAttributes.Text = $onPremisesExtensionAttributesToolTip
-
-				# Add info to right side Overview tabItem
-				$WPFTextBlock_Overview_LatestCheckedInUserName.Text = "Latest Checked-in User: $($Script:LatestCheckedinUser.userPrincipalName)"
-				$WPFTextBox_Overview_LatestCheckedInUser.Text = $BasicInfo
-				
-				# Add info to right side Latest Checked-In User JSON tabItem textBox
-				$WPFLatestCheckedInUser_json_textBox.Text = $Script:LatestCheckedinUser | ConvertTo-Json -Depth 5
-				
-				# Enable Latest Checked-In User right click menus
-				$WPFLatest_CheckIn_User_Menu_Copy.isEnabled = $True
-				$WPFLatest_CheckIn_User_Menu_Copy_Menu_OpenLatestCheckInUserInBrowser.isEnabled = $True
-				
-				# Make sure we don't get here on next round (checked-in user)
-				$ProcessingLatestCheckinUser = $False
-
-				# Get Latest LoggedOn User Groups memberOf
-				$url = "https://graph.microsoft.com/beta/users/$($Script:LatestCheckedinUser.id)/memberOf?_=1577625591876"
-				$Script:LatestCheckedInUserGroupsMemberOf = Invoke-MSGraphGetRequestWithMSGraphAllPages $url
-				if($Script:LatestCheckedInUserGroupsMemberOf) {
-
-					# DEBUG $Script:LatestCheckedInUserGroupsMemberOf -> Paste json data to text editor
-					#$Script:LatestCheckedInUserGroupsMemberOf | ConvertTo-Json -Depth 4 | Set-ClipBoard
-
-					$Script:LatestCheckedInUserGroupsMemberOf = Add-AzureADGroupGroupTypeExtraProperties $Script:LatestCheckedInUserGroupsMemberOf
-
-					[Array]$script:LatestCheckedInUserGroupMembershipsObservableCollection = [Array]$Script:LatestCheckedInUserGroupsMemberOf | Sort-Object -Property displayName
-					
-					$WPFlistView_LatestCheckedInUser_GroupMemberships.Itemssource = $script:LatestCheckedInUserGroupMembershipsObservableCollection
-
-					# Enable LatestCheckedInUser Group Memberships right click menus
-					$WPFListView_GridTabItem_LatestCheckedInUser_GroupMembershipsTAB_Menu_Copy_DynamicRules.isEnabled = $True
-					$WPFListView_GridTabItem_LatestCheckedInUser_GroupMembershipsTAB_Menu_Copy_JSON.isEnabled = $True
-					$WPFListView_GridTabItem_LatestCheckedInUser_GroupMembershipsTAB_Menu_Open_Group_In_Browser.isEnabled = $True
-
-					# Set ToolTip to TabItem Header showing all Azure AD Groups
-					$LatestCheckedInUserGroupsMemberOfToolTip = [array]$null
-					$Script:LatestCheckedInUserGroupsMemberOf | Sort-Object -Property displayName | Foreach { $LatestCheckedInUserGroupsMemberOfToolTip += "$($_.displayName)`n" }
-					$WPFTextBlock_TabItem_LatestCheckedInUser_GroupMembershipsTAB_Header_ToolTip.Text = $LatestCheckedInUserGroupsMemberOfToolTip
-
-				} else {
-					Write-Host "Did not find any groups for user $($Script:LatestCheckedinUser.userPrincipalName)"
-				}
-
-			} else {
-				# Get user information
-				$url = "https://graph.microsoft.com/beta/users/$($LoggedOnUser.userId)?`$select=id,displayName,mail,userPrincipalName"
-				$AADuser = Invoke-MSGraphGetRequestWithMSGraphAllPages $url
-			}
-        }
-        #$usersLoggedOn += "$($AADuser.mail)`n"
-		$usersLoggedOn += "$($AADuser.userPrincipalName)`n"
-		$lastLogOnDateTimeLocalTimeZone = (Get-Date $LoggedOnUser.lastLogOnDateTime).ToLocalTime()
-		$lastLogOnDateTime = Get-Date $lastLogOnDateTimeLocalTimeZone -Format 'yyyy-MM-dd HH:mm:ss'
-        $usersLoggedOn += "$lastLogOnDateTime`n`n"
-    }
-    $WPFIntuneDeviceDetails_RecentCheckins_textBox.Text = $usersLoggedOn
-
+	# Get Logged on users information
+	Get-CheckedInUsersGroupMemberships
 
     # Get Device AzureADGroup memberships
     $url = "https://graph.microsoft.com/beta/devices?`$filter=deviceid%20eq%20`'$($Script:IntuneManagedDevice.azureADDeviceId)`'"
@@ -2901,8 +3811,12 @@ function Get-DeviceInformation {
 
 			# DEBUG $Script:deviceGroupMemberships -> Paste json data to text editor
 			#$Script:deviceGroupMemberships | ConvertTo-Json -Depth 4 | Set-ClipBoard
-			
+
+			# Add extra properties like GroupMembers, GroupType, Security and MembershipType
 			$Script:deviceGroupMemberships = Add-AzureADGroupGroupTypeExtraProperties $Script:deviceGroupMemberships
+			
+			Write-Verbose "Add device's AzureAD groups devices and users member count custom properties"
+			$Script:deviceGroupMemberships = Add-AzureADGroupDevicesAndUserMemberCountExtraProperties $Script:deviceGroupMemberships
 
 			$script:DeviceGroupMembershipsObservableCollection = $Script:deviceGroupMemberships | Sort-Object -Property displayName
 
@@ -2976,296 +3890,37 @@ function Get-DeviceInformation {
 	#>
 
 
+
 		# Get Intune Application Assignments
 		Write-Host "Get Intune Applications"
 		$Script:AppsWithAssignments = Get-ApplicationsWithAssignments -ReloadCacheData $ReloadCacheData
 		Write-Host "Found $($Script:AppsWithAssignments.Count) applications"
 		Write-Host
 
-		# Get all applications targeted to specific user AND device
-		# if there is no Primary User then we get only device targeted applications
-		# We will get all device AND user targeted apps. We will need to figure out which apps came from which AzureAD Group targeting
 
-		# Intune original request
-		#$url = "https://graph.microsoft.com/beta/users('$($Script:IntuneManagedDevice.userId)')/mobileAppIntentAndStates('$IntuneDeviceId')"
-
-		# Using Primary User id
-		$url = "https://graph.microsoft.com/beta/users('$($primaryUserId)')/mobileAppIntentAndStates('$IntuneDeviceId')"
-
-		# Send MSGraph request
-		$mobileAppIntentAndStates = Invoke-MSGraphGetRequestWithMSGraphAllPages $url
-		if($mobileAppIntentAndStates) {
-			$mobileAppIntentAndStatesMobileAppList = $mobileAppIntentAndStates.mobileAppList
-		} else {
-			$mobileAppIntentAndStatesMobileAppList = $null
-		}
-
-		$script:AppsAssignmentsObservableCollection = @()
-
-		# We duplicate $mobileAppIntentAndStatesMobileAppList and remove every app in every foreach loop if we find assignments
-		# If for any reason we don't find Assignment targeted to either All Users, All Devices, member of Device group or member of Primary User group
-		# then we will know that at the end
-		# Case could be that we have nested groups targeting so we actually don't know which nested group was original assignment reason
-		# So far we will report source to be unknown. Maybe in the future releases we can do recursive group membership search
-		# to find out why application is targeted to device (this could actually be very important information)
-		$CopyOfMobileAppIntentAndStatesMobileAppList = $mobileAppIntentAndStatesMobileAppList
-
-		$odatatype = $null
-		$assignmentGroup = $null
-
-		# Go through all Application Assignments for this specific device and primary user
-		# Create new object (for ListView) when ever we find assignment targeted to device and/or user
-		foreach ($mobileAppIntentAndStatesMobileApp in $mobileAppIntentAndStatesMobileAppList) {
-
-			$assignmentGroup = 'unknown'
-			$AppHadAssignments = $false
-			$displayName = $null
-			$properties = $null
-			$displayNameToolTip = $null
-
-			# Get Application information with Assignment details
-			# Get it once and use it many times
-			$App = $Script:AppsWithAssignments | Where-Object { $_.id -eq "$($mobileAppIntentAndStatesMobileApp.applicationId)" }
-			#$App
-
-			$displayNameToolTip = $App.description
-
-			# Remove #microsoft.graph. from @odata.type
-			$odatatype = $App.'@odata.type'
-			$odatatype = $odatatype.Replace('#microsoft.graph.', '')
-
-			if ($App.licenseType -eq 'offline') {
-				$displayName = "$($App.displayname) (offline)"
-			}
-			else {
-				$displayName = "$($App.displayname)"
-			}
-
-			# Go through all Assignments in Application
-			# Notice we can have at least 4 different Assignments showing here so we actually need to check every Assignment
-			# All Users, All Devices, group specific included, group specific excluded
-			# And Available and Required types of assignment
-			# Excluded assignments are not available for All Users and All Devices
-			Foreach ($Assignment in $App.Assignments) {
-				
-				 # We will see Assignment which are not targeted to this device so we need to exclude those out
-				$IncludeApplicationAssignmentInSummary = $false
-				$context = '_unknown'
-				$assignmentGroup = $null
-				$assignmentGroupId = $null
-				$AssignmentGroupToolTip = $null
-
-				$assignmentFilterDisplayName = $null
-				$assignmentFilterId = $null
-				$FilterToolTip = $null
-				$FilterMode = $null
-				
-				# Cast as string so our column sorting works
-				# DID NOT WORK for fixing sorting
-				$YodamiittiCustomMembershipType = [String]''
-
-				if ($Assignment.target.'@odata.type' -eq '#microsoft.graph.allLicensedUsersAssignmentTarget') {
-					# Special case for All Users
-					$assignmentGroup = 'All Users'
-					$context = 'User'
-					$AssignmentGroupToolTip = 'Built-in All Users group'
-
-					$IncludeApplicationAssignmentInSummary = $true
-				}
-				
-				if ($Assignment.target.'@odata.type' -eq '#microsoft.graph.allDevicesAssignmentTarget') {
-					# Special case for All Devices
-					$assignmentGroup = 'All Devices'
-					$context = 'Device'
-					$AssignmentGroupToolTip = 'Built-in All Devices group'
-
-					$IncludeApplicationAssignmentInSummary = $true
-				}
-				
-				if (($Assignment.target.'@odata.type' -ne '#microsoft.graph.allLicensedUsersAssignmentTarget') -and ($Assignment.target.'@odata.type' -ne '#microsoft.graph.allDevicesAssignmentTarget')) {
-
-					# Group based assignment. We need to get AzureAD Group Name
-					# #microsoft.graph.groupAssignmentTarget
-
-					# Test if device is member of this group
-					if($Script:deviceGroupMemberships | Where-Object { $_.id -eq $Assignment.target.groupId}) {
-						$context = 'Device'
-
-						#$assignmentGroup = $Script:deviceGroupMemberships | Where-Object { $_.id -eq $Assignment.target.groupId} | Select-object -ExpandProperty displayName
-
-						$assignmentGroupObject = $Script:deviceGroupMemberships | Where-Object { $_.id -eq $Assignment.target.groupId}
-						
-						$assignmentGroup = $assignmentGroupObject.displayName
-						$assignmentGroupId = $assignmentGroupObject.id
-						
-						#$GroupType = Add-AzureADGroupGroupTypeExtraProperties $assignmentGroupObject
-						$AssignmentGroupToolTip = "$($assignmentGroupObject.membershipRule)"
-						
-						$YodamiittiCustomMembershipType = $assignmentGroupObject.YodamiittiCustomMembershipType
-						
-						$IncludeApplicationAssignmentInSummary = $true
-					} else {
-						# Group not found on member of devicegroups
-					}
-
-					# Test if primary user is member of assignment group
-					if($Script:PrimaryUserGroupsMemberOf | Where-Object { $_.id -eq $Assignment.target.groupId}) {
-						if($assignmentGroup) {
-							# Device also is member of this group. Now we got mixed User and Device memberships
-							# Maybe not good practise but it is possible
-
-							$context = '_Device/User'
-						} else {
-							$context = 'User'
-							#$assignmentGroup = $Script:PrimaryUserGroupsMemberOf | Where-Object { $_.id -eq $Assignment.target.groupId} | Select-object -ExpandProperty displayName
-							
-							$assignmentGroupObject = $Script:PrimaryUserGroupsMemberOf | Where-Object { $_.id -eq $Assignment.target.groupId}
-							
-							$assignmentGroup = $assignmentGroupObject.displayName
-							$assignmentGroupId = $assignmentGroupObject.id
-							
-							$AssignmentGroupToolTip = "$($assignmentGroupObject.membershipRule)"
-							
-							$YodamiittiCustomMembershipType = $assignmentGroupObject.YodamiittiCustomMembershipType
-							
-						}
-						$IncludeApplicationAssignmentInSummary = $true
-					} else {
-						# Group not found on member of devicegroups
-					}
-				}
-
-
-				if($IncludeApplicationAssignmentInSummary) {
-
-					# Set included/excluded attribute
-					$AppIncludeExclude = ''
-					if ($Assignment.target.'@odata.type' -eq '#microsoft.graph.groupAssignmentTarget') {
-						$AppIncludeExclude = 'Included'
-					}
-					if ($Assignment.target.'@odata.type' -eq '#microsoft.graph.exclusionGroupAssignmentTarget') {
-						$AppIncludeExclude = 'Excluded'
-					}
-
-					$assignmentIntent = $Assignment.intent
-					
-					if(($assignmentIntent -eq 'available') -and ($mobileAppIntentAndStatesMobileApp.installState -eq 'unknown')) {
-						$mobileAppIntentAndStatesMobileApp.installState = 'Available for install'
-					}
-
-					if(($assignmentIntent -eq 'required') -and ($mobileAppIntentAndStatesMobileApp.installState -eq 'unknown')) {
-						$mobileAppIntentAndStatesMobileApp.installState = 'Waiting for install status'
-					}
-
-					$assignmentFilterId = $Assignment.target.deviceAndAppManagementAssignmentFilterId
-					#$assignmentFilterDisplayName = $AllIntuneFilters | Where-Object { $_.id -eq $assignmentFilterId } | Select-Object -ExpandProperty displayName
-					
-					$assignmentFilterObject = $AllIntuneFilters | Where-Object { $_.id -eq $assignmentFilterId }
-
-					$assignmentFilterDisplayName = $assignmentFilterObject.displayName
-					$assignmentFilterId = $assignmentFilterObject.id
-					$FilterToolTip = $assignmentFilterObject.rule
-
-					$FilterMode = $Assignment.target.deviceAndAppManagementAssignmentFilterType
-					if($FilterMode -eq 'None') {
-						$FilterMode = $null
-					}
-
-					# Cast variable types to make sure column click based sorting works
-					# Sorting may break if there are different kind of objects
-					$properties = @{
-						context                          = [String]$context
-						odatatype                        = [String]$odatatype
-						displayname                      = [String]$displayName
-						version                          = [String]$mobileAppIntentAndStatesMobileApp.displayVersion
-						assignmentIntent                 = [String]$assignmentIntent
-						IncludeExclude                   = [String]$AppIncludeExclude
-						assignmentGroup                  = [String]$assignmentGroup
-						assignmentGroupId                = [String]$assignmentGroupId
-						installState                     = [String]$mobileAppIntentAndStatesMobileApp.installState
-						lastModifiedDateTime             = $App.lastModifiedDateTime
-						YodamiittiCustomMembershipType   = [String]$YodamiittiCustomMembershipType
-						id                               = $App.id
-						filter							 = [String]$assignmentFilterDisplayName
-						filterId						 = [String]$assignmentFilterId
-						filterMode						 = [String]$FilterMode
-						filterTooltip                    = [String]$FilterTooltip
-						AssignmentGroupToolTip 			 = [String]$AssignmentGroupToolTip
-						displayNameToolTip               = [String]$displayNameToolTip
-					}
-
-					# Create new custom object every time inside foreach-loop
-					# If you create custom object outside of foreach then you would edit same custom object on every foreach cycle resulting only 1 app in custom object array
-					$CustomObject = New-Object -TypeName PSObject -Prop $properties
-
-					# Add custom object to our custom object array.
-					$script:AppsAssignmentsObservableCollection += $CustomObject
-				}
-			}
-			
-			# Remove App from our copy object array if any assignment was found
-			$AppWithAssignment = $script:AppsAssignmentsObservableCollection | Where-Object { $_.id -eq $mobileAppIntentAndStatesMobileApp.applicationId }
-			if ($AppWithAssignment) {
-				# App had Assignment so we remove App from copy array
-
-				# We will end up having only Apps which we did NOT find assignments in this array
-				# This is reserved for possible future features
-				$CopyOfMobileAppIntentAndStatesMobileAppList = $CopyOfMobileAppIntentAndStatesMobileAppList | Where-Object { $_.applicationId -ne $mobileAppIntentAndStatesMobileApp.applicationId}
-
-			} else {
-				# We could not determine Assignment source
-				
-				# Set variable which we return from this function
-				$UnknownAssignmentGroupFound = $true
-				
-				# One option is that our cache data was not updated even if data was updated in Intune
-				# Some configuration policies may not change lastModifiedDateTime property if only assignments were changed
-
-				$context = '_unknown'
-	 
-				# App Intent requiredInstall is different than App Assignment so we remove word Install
-				$assignmentIntent = $mobileAppIntentAndStatesMobileApp.mobileAppIntent
-				$assignmentIntent = $assignmentIntent.Replace('Install','')
-
-				$AppIncludeExclude = ''
-				$assignmentGroup = 'unknown (possible nested group or removed assignment)'
+		# Set items source object array to Selected User combobox
+		$WPFIntuneDeviceDetails_ApplicationAssignments_SelectUser_ComboBox.ItemsSource = [array]$script:ComboItemsInApplicationSelectUserComboBoxSource
 		
-				# Cast variable types to make sure column click based sorting works
-				# Sorting may break if there are different kind of objects
-				$properties = @{
-					context                          = [String]$context
-					odatatype                        = [String]$odatatype
-					displayname                      = [String]$displayName
-					version                          = [String]$mobileAppIntentAndStatesMobileApp.displayVersion
-					assignmentIntent                 = [String]$assignmentIntent
-					IncludeExclude                   = [String]$AppIncludeExclude
-					assignmentGroup                  = [String]$assignmentGroup
-					assignmentGroupId                = [String]$null
-					installState                     = [String]$mobileAppIntentAndStatesMobileApp.installState
-					lastModifiedDateTime             = $App.lastModifiedDateTime
-					YodamiittiCustomMembershipType   = [String]''
-					id                               = $App.id
-					filter							 = [String]''
-					filterId						 = [String]$null
-					filterMode						 = [String]''
-					filterTooltip                    = [String]''
-					AssignmentGroupToolTip 			 = [String]''
-					displayNameToolTip               = [String]''
-				}
-				$CustomObject = New-Object -TypeName PSObject -Prop $properties
-				$script:AppsAssignmentsObservableCollection += $CustomObject
-			}
+		# Specify what property to show in Selected User combobox dropdown list
+		$WPFIntuneDeviceDetails_ApplicationAssignments_SelectUser_ComboBox.DisplayMemberPath = 'UserPrincipalName'
+
+
+		if($Script:PrimaryUser) {
+			# preselect the second element which is hardcoded as Primary User
+			$WPFIntuneDeviceDetails_ApplicationAssignments_SelectUser_ComboBox.SelectedIndex = 1
+		} else {
+			# preselect the first element which is hardcoded as Device without user
+			$WPFIntuneDeviceDetails_ApplicationAssignments_SelectUser_ComboBox.SelectedIndex = 0
 		}
 
-		if($script:AppsAssignmentsObservableCollection.Count -gt 1) {
-			# ItemsSource works if we are sorting 2 or more objects
-			$WPFlistView_ApplicationAssignments.Itemssource = $script:AppsAssignmentsObservableCollection | Sort-Object -Property context, @{expression = 'assignmentIntent';descending = $true},IncludeExclude,displayName
+		Write-Host "Get Intune Apps and Intents for user"
+		$returnMobileAppIntentsForSpecifiedUser = Get-MobileAppIntentsForSpecifiedUser -UserId $primaryUserId -IntuneDeviceId $IntuneDeviceId
+		if($returnMobileAppIntentsForSpecifiedUser) {
+			Write-Host "Found $returnMobileAppIntentsForSpecifiedUser App Intent and States"
 		} else {
-			# Only 1 object so we can't do sorting
-			# If we try to sort here then our object array breaks and it does not work for ItemsSource
-			# Cast as array because otherwise it will fail
-			$WPFlistView_ApplicationAssignments.Itemssource = [array]$script:AppsAssignmentsObservableCollection
+			Write-Host "Did not find any App Intent and States"
 		}
+		Write-Host
 
 		###########################################################################################
 		# Create Configuration Assignment information
@@ -3357,35 +4012,10 @@ function Get-DeviceInformation {
 "@
 
 		Write-Host "Get Intune device Configuration Assignment information"
-		$MSGraphRequest = Invoke-MSGraphRequest -Url $url -Content $GraphAPIPostRequest.ToString() -HttpMethod 'POST'
-		$Success = $?
+		$ConfigurationPoliciesReportForDevice = Download-IntunePostTypeReport -GraphAPIUrl $url -GraphAPIPostRequest $GraphAPIPostRequest
+		Write-Host "Found $($ConfigurationPoliciesReportForDevice.Count) Configuration Assignments"
 
-		if($Success) {
-			#Write-Host "Success"
-		} else {
-			# Invoke-MSGraphRequest failed
-			Write-Error "Error getting Intune device Configuration Assignment information"
-			return 1
-		}
 
-		# Get AllMSGraph pages
-		# This is also workaround to get objects without assigning them from .Value attribute
-		$ConfigurationPoliciesReportForDevice = Get-MSGraphAllPages -SearchResult $MSGraphRequest
-		$Success = $?
-
-		if($Success) {
-			Write-Host "Success"
-		} else {
-			# Invoke-MSGraphRequest failed
-			Write-Error "Error getting Intune device Configuration Assignment information"
-			return 1
-		}
-
-		# Original
-		#$deviceConfigurationStates = Invoke-MSGraphGetRequestWithMSGraphAllPages $url
-
-		$ConfigurationPoliciesReportForDevice = Objectify_JSON_Schema_and_Data_To_PowershellObjects $ConfigurationPoliciesReportForDevice
-		
 		# Sort policies by PolicyId so we will download policies only once in next steps
 		$ConfigurationPoliciesReportForDevice = $ConfigurationPoliciesReportForDevice | Sort-Object -Property PolicyId
 		
@@ -3402,6 +4032,7 @@ function Get-DeviceInformation {
 
 			$assignmentGroup = $null
 			$assignmentGroupId = $null
+			$YodamiittiCustomGroupMembers = 'N/A'
 			$context = $null
 			$DeviceConfiguration = $null
 			$IntuneDeviceConfigurationPolicyAssignments = $null
@@ -3462,6 +4093,7 @@ function Get-DeviceInformation {
 			foreach ($IntuneDeviceConfigurationPolicyAssignment in $IntuneDeviceConfigurationPolicyAssignments) {
 
 				$assignmentGroup = $null
+				$YodamiittiCustomGroupMembers = 'N/A'
 
 				# Only include Configuration which have assignments targeted to this device/user
 				$IncludeConfigurationAssignmentInSummary = $false
@@ -3474,6 +4106,8 @@ function Get-DeviceInformation {
 					$context = 'User'
 					$AssignmentGroupToolTip = 'Built-in All Users group'
 
+					$YodamiittiCustomGroupMembers = ''
+
 					$IncludeConfigurationAssignmentInSummary = $true
 				}
 
@@ -3482,6 +4116,8 @@ function Get-DeviceInformation {
 					$assignmentGroup = 'All Devices'
 					$context = 'Device'
 					$AssignmentGroupToolTip = 'Built-in All Devices group'
+
+					$YodamiittiCustomGroupMembers = ''
 
 					$IncludeConfigurationAssignmentInSummary = $true
 				}
@@ -3498,6 +4134,14 @@ function Get-DeviceInformation {
 						
 						$assignmentGroup = $assignmentGroupObject.displayName
 						$assignmentGroupId = $assignmentGroupObject.id
+
+						# Create Group Members column information
+						$DevicesCount = $assignmentGroupObject.YodamiittiCustomGroupMembersCountDevices
+						$UsersCount = $assignmentGroupObject.YodamiittiCustomGroupMembersCountUsers
+						#$YodamiittiCustomGroupMembers = "$DevicesCount devices, $UsersCount users"
+						$YodamiittiCustomGroupMembers = ''
+						if($DevicesCount -gt 0) { $YodamiittiCustomGroupMembers += "$DevicesCount devices " }
+						if($UsersCount -gt 0) { $YodamiittiCustomGroupMembers += "$UsersCount users " }							
 
 						$AssignmentGroupToolTip = "$($assignmentGroupObject.membershipRule)"
 						
@@ -3530,6 +4174,14 @@ function Get-DeviceInformation {
 							$assignmentGroup = $assignmentGroupObject.displayName
 							$assignmentGroupId = $assignmentGroupObject.id
 							
+							# Create Group Members column information
+							$DevicesCount = $assignmentGroupObject.YodamiittiCustomGroupMembersCountDevices
+							$UsersCount = $assignmentGroupObject.YodamiittiCustomGroupMembersCountUsers
+							#$YodamiittiCustomGroupMembers = "$DevicesCount devices, $UsersCount users"
+							$YodamiittiCustomGroupMembers = ''
+							if($DevicesCount -gt 0) { $YodamiittiCustomGroupMembers += "$DevicesCount devices " }
+							if($UsersCount -gt 0) { $YodamiittiCustomGroupMembers += "$UsersCount users " }
+							
 							$AssignmentGroupToolTip = "$($assignmentGroupObject.membershipRule)"
 							
 							$YodamiittiCustomMembershipType = $assignmentGroupObject.YodamiittiCustomMembershipType
@@ -3561,6 +4213,11 @@ function Get-DeviceInformation {
 								
 								$assignmentGroup = $assignmentGroupObject.displayName
 								$assignmentGroupId = $assignmentGroupObject.id
+								
+								# Create Group Members column information
+								$DevicesCount = $assignmentGroupObject.YodamiittiCustomGroupMembersCountDevices
+								$UsersCount = $assignmentGroupObject.YodamiittiCustomGroupMembersCountUsers
+								$YodamiittiCustomGroupMembers = "$DevicesCount devices, $UsersCount users"
 								
 								$AssignmentGroupToolTip = "$($assignmentGroupObject.membershipRule)"
 								
@@ -3614,6 +4271,7 @@ function Get-DeviceInformation {
 						assignmentIntent                 = [String]$assignmentIntent
 						IncludeExclude                   = [String]$PolicyIncludeExclude
 						assignmentGroup                  = [String]$assignmentGroup
+						YodamiittiCustomGroupMembers     = [String]$YodamiittiCustomGroupMembers
 						assignmentGroupId 				 = [String]$assignmentGroupId
 						state                            = [String]$state
 						YodamiittiCustomMembershipType   = [String]$YodamiittiCustomMembershipType
@@ -3667,6 +4325,8 @@ function Get-DeviceInformation {
 					$assignmentGroup = "unknown (possible user targeted group, nested group or removed assignment)"
 				}
 
+				$YodamiittiCustomGroupMembers = 'N/A'
+
 				# Cast variable types to make sure column click based sorting works
 				# Sorting may break if there are different kind of objects
 				$properties = @{
@@ -3677,6 +4337,7 @@ function Get-DeviceInformation {
 					assignmentIntent                 = [String]$assignmentIntent
 					IncludeExclude                   = [String]$PolicyIncludeExclude
 					assignmentGroup                  = [String]$assignmentGroup
+					YodamiittiCustomGroupMembers     = [String]$YodamiittiCustomGroupMembers
 					assignmentGroupId 				 = $null
 					state                            = [String]$ConfigurationPolicyReportState.PolicyStatus
 					YodamiittiCustomMembershipType   = [String]''
@@ -3822,13 +4483,14 @@ Function Clear-UIData {
 	$WPFTextBlock_TabItem_Device_GroupMemberships_Header_ToolTip.Text = ''
 	$WPFTextBlock_TabItem_User_GroupMembershipsTAB_Header_ToolTip.Text = ''
 	$WPFTextBlock_TabItem_LatestCheckedInUser_GroupMembershipsTAB_Header_ToolTip.Text = ''
+	$WPFTabItem_LatestCheckedInUser_GroupMembershipsTAB_Header.Text = "Checked-In User Group Memberships"
 
 	# Overview tabItem
 	$WPFTextBlock_Overview_DeviceName.Text = 'DeviceName'
 	$WPFTextBox_Overview_Device.Text = ''
 	$WPFTextBlock_Overview_PrimaryUserName.Text = 'PrimaryUser'
 	$WPFTextBox_Overview_PrimaryUser.Text = ''
-	$WPFTextBlock_Overview_LatestCheckedInUserName.Text = 'Latest Checked-In User'
+	$WPFTextBlock_Overview_LatestCheckedInUserName.Text = 'Latest or Selected Checked-In User'
 	$WPFTextBox_Overview_LatestCheckedInUser.Text = ''
 	
 	$WPFIntuneDeviceDetails_json_textBox.Text = ''
@@ -3923,14 +4585,28 @@ $WPFButton_GridIntuneDeviceDetailsBorderTop_Search.Add_Click({
     
 	Write-Verbose "Search button clicked"
 
+	# Set Mouse cursor to Wait
+	$Form.Cursor = [System.Windows.Input.Cursors]::Wait
+
 	# Call search function
 	Search-IntuneDevices
+
+	# Set Mouse cursor to Arrow (default)
+	$Form.Cursor = [System.Windows.Input.Cursors]::Arrow
 
 })
 
 
 $WPFButton_GridIntuneDeviceDetailsBorderTop_CreateReport.Add_Click({
+
+	# Set this variable so any combobox selection change will not trigger
+	# event. For example Select user -dropdown is one of these
+	# which are configured and selected automatically during info gathering
+	$script:IgnoreDropdownSelectionEvents = $True
     
+	# Set Mouse cursor to wait
+	$Form.Cursor = [System.Windows.Input.Cursors]::Wait
+	
 	Write-Verbose "Create report button clicked"
 
 	# Clear UI Data
@@ -3990,6 +4666,12 @@ $WPFButton_GridIntuneDeviceDetailsBorderTop_CreateReport.Add_Click({
 				Write-Verbose "IntuneDeviceId is NOT valid guid. This should not be possible"
 				$WPFIntuneDeviceDetails_textBox_DeviceName.Text = "deviceId is not valid GUID"
 				$WPFIntuneDeviceDetails_textBox_DeviceName.Foreground = "red"
+				
+				$script:IgnoreDropdownSelectionEvents = $False
+				
+				# Set Mouse cursor to Arrow (default)
+				$Form.Cursor = [System.Windows.Input.Cursors]::Arrow
+	
 				return
 			}
 		} else {
@@ -4006,6 +4688,12 @@ $WPFButton_GridIntuneDeviceDetailsBorderTop_CreateReport.Add_Click({
 		$WPFIntuneDeviceDetails_textBox_DeviceName.Text = "No device selected"
 		$WPFIntuneDeviceDetails_textBox_DeviceName.Foreground = "red"
 	}
+	
+	$script:IgnoreDropdownSelectionEvents = $False
+
+	# Set Mouse cursor to Arrow (default)
+	$Form.Cursor = [System.Windows.Input.Cursors]::Arrow
+
 })
 
 
@@ -4274,7 +4962,7 @@ $WPFListView_GridTabItem_Device_GroupMembershipsTAB_Menu_Copy_JSON.Add_Click( {
 			# DEBUG
 			#Write-Verbose "Selected row: $SelectedRowInGrid"
 
-			$CopyInformation += $SelectedRowInGrid | Select-Object -Property * -ExcludeProperty YodamiittiCustomGroupType,YodamiittiCustomMembershipType
+			$CopyInformation += $SelectedRowInGrid | Select-Object -Property * -ExcludeProperty YodamiittiCustomGroupType,YodamiittiCustomMembershipType,YodamiittiCustomGroupMembersCount
 
 		}
 
@@ -4631,6 +5319,38 @@ $WPFlistView_ApplicationAssignments.Add_SelectionChanged( {
 	})
 
 
+$WPFIntuneDeviceDetails_ApplicationAssignments_SelectUser_ComboBox.Add_SelectionChanged( {
+		
+		if(-not $script:IgnoreDropdownSelectionEvents) {
+			
+			# Set Mouse cursor to Wait
+			# Does not work here
+			#$Form.Cursor = [System.Windows.Input.Cursors]::Wait
+			
+			$SelectedUser = $WPFIntuneDeviceDetails_ApplicationAssignments_SelectUser_ComboBox.SelectedItem
+			Write-Verbose "User selection change to user: $($SelectedUser.userPrincipalName)"
+			
+			$IntuneDeviceId = $Script:IntuneManagedDevice.id
+			
+			# Get Logged on users information
+			Write-Host "Get group memberships for selected user $($SelectedUser.userPrincipalName)"
+			Get-CheckedInUsersGroupMemberships -SelectedUser $SelectedUser
+			
+			Write-Host "Get Intune Apps and Intents for selected user $($SelectedUser.userPrincipalName)"
+			Get-MobileAppIntentsForSpecifiedUser -UserId $SelectedUser.id -IntuneDeviceId $IntuneDeviceId
+			Write-Host "Done"
+		} else {
+			Write-Verbose "Ignoring Select user -dropdown selection change"
+		}
+
+		# Set Mouse cursor to Arrow (default)
+		# Does not work here
+		#$Form.Cursor = [System.Windows.Input.Cursors]::Arrow
+
+	})
+
+
+
 ### Configuration profiles listview events
 
 $WPFlistView_ConfigurationsAssignments_Menu_Copy_JSON.Add_Click( {
@@ -4762,6 +5482,22 @@ $WPFlistView_PrimaryUser_GroupMemberships.Add_SelectionChanged( {
 			$WPFAzureAD_Group_json_textBox.Text = $SelectedAzureADGroup | Select-Object -Property * -ExcludeProperty YodamiittiCustom* | ConvertTo-Json -Depth 6
 		}
 	})
+
+$WPFlistView_LatestCheckedInUser_GroupMemberships.Add_SelectionChanged( {
+		$SelectedAzureADGroup = $WPFlistView_LatestCheckedInUser_GroupMemberships.SelectedItems
+		$NumberOfAzureADGroupsSelected = $SelectedAzureADGroup.Count
+
+		#Write-Verbose "Selected AzureADGroup $($SelectedAzureADGroup)"
+		#Write-Verbose "Selected AzureADGroup count is $NumberOfAzureADGroupsSelected"
+		
+		# Continue only if 1 configuration is selected
+		if($NumberOfAzureADGroupsSelected -eq 1) {
+
+			# Set Selected Azure AD Group JSON view text
+			$WPFAzureAD_Group_json_textBox.Text = $SelectedAzureADGroup | Select-Object -Property * -ExcludeProperty YodamiittiCustom* | ConvertTo-Json -Depth 6
+		}
+	})
+
 
 ### AboutBottom events
 
