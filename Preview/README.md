@@ -1,4 +1,5 @@
 # Intune Device Details GUI ver. 2.974 Preview (updated 17.2.2023)
+**This is also production version so we are up to date for now.**  
 **Preview versions are development versions which I use daily with my production environments.**
 
 
