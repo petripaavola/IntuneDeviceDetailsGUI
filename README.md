@@ -1,7 +1,12 @@
-##### Check out latest [Preview-version 2.974](./Preview) which is next Release Candidate to production. You will want to use this version and I use it daily :)
-
-# Intune Device Details GUI ver. 2.95 (updated 17.5.2022)
+# Intune Device Details GUI ver. 2.974 (updated 19.3.2023)
 Go to script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)
+
+**Version 2.974 is another bigger update.**
+
+*  **There was bug in Configuration Profiles processing so make sure to update to this newer version (it limited to 50 policies).**
+*  You can now see **impact** of Assignments meaning you can see number of users and/or devices affected by Assignment.  
+*  You can also select logged on user to show Application assignments to.  
+*  Something small but also really big on it's own way. Mouse cursor changes to busy while searching :)  
 
 **Version 2.95 is a huge update to the script's functionalities. Built-in search helps using this tool a lot.**
 
