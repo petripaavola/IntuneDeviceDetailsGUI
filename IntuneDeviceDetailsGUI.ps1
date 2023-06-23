@@ -5786,6 +5786,13 @@ $WPFcheckBox_SkipAppAndConfigurationAssignmentReport.ToolTip = "Quicker search t
 
 ##########################################################################################
 
+# Github ticket 5 - If user is using PowerShell 7, then the tool tends to crash. The following lines are fixing that. The reason why we check for the PS version is that if you
+# run this code on PS5, then you get an unneeded error thrown.
+$PSVersion = $PSVersionTable.PSVersion.Major.toString()
+
+if($PSVersion -eq 7){
+    Import-Module Microsoft.Graph.Intune -UseWindowsPowerShell # Import intune module
+}
 
 ####### Connect to Graph API
 # Update Graph API schema to beta to get Win32LobApps and possible other new features also
