@@ -1,14 +1,14 @@
 ﻿<#
 .Synopsis
-   Intune Device Details GUI ver 2.974
+   Intune Device Details GUI ver 2.98 (MgGraph version)
    
 
    Author:
    Petri.Paavola@yodamiitti.fi
    Modern Management Principal
-   Microsoft MVP - Windows and Devices for IT
+   Microsoft MVP - Windows and Devices
    
-   2023-03-19
+   2024-05-09
    
    https://github.com/petripaavola/IntuneDeviceDetailsGUI
 .DESCRIPTION
@@ -33,6 +33,10 @@
 	
    Test right click menus -> You can open MEM/Intune web console for many resources:
    Intune Device, Azure AD Device, PrimaryUser, Azure AD Groups, Applications, Filters, etc...
+   
+   Script uses Powershell module Microsoft.Graph.Authentication which you can install with command
+   Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser
+   
 .EXAMPLE
    .\IntuneDeviceDetailsGUI.ps1
 .EXAMPLE
@@ -78,7 +82,7 @@ Param(
     [String]$id = $null
 )
 
-$ScriptVersion = "ver 2.974"
+$ScriptVersion = "ver 2.98"
 $IntuneDeviceId = $id
 $TimeOutBetweenGraphAPIRequests = 300
 
@@ -776,6 +780,34 @@ $inputXML = @"
 											<TextBox x:Name="TextBox_Overview_LatestCheckedInUser" TextWrapping="NoWrap" Text="" Padding="5" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden" Margin="5" IsReadOnly="True" FontFamily="Consolas" FontSize="14"/>
 										</StackPanel>
 									</ScrollViewer>
+								</Grid>
+							</Border>
+						</Grid>
+					</TabItem>
+					<TabItem x:Name="BitlockerKeys" Background="#FFE5EEFF">
+						<TabItem.Header>
+							<TextBlock Text="Bitlocker Keys" Style="{StaticResource HeaderTextBlockStyle}" FontSize="16" FontWeight="Bold"/>
+						</TabItem.Header>
+						<Grid x:Name="GridBitlockerKeysTAB">
+							<Border x:Name="BorderGridBitlockerKeysTAB" BorderBrush="Black" BorderThickness="1" Margin="0,0,2,2" Background="#FFF7F7F7" CornerRadius="8">
+								<Grid x:Name="GridBitlockerKeysTABWindow">
+									<Button x:Name="Button_Get_BitlockerRecoveryKeys" Content="Get Bitlocker Recovery keys" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25" Width="190" Margin="5,10,0,0" FontWeight="Bold" FontSize="14"/>
+									<Button x:Name="Button_Clear_BitlockerRecoveryKeys" Content="Clear" HorizontalAlignment="Right" VerticalAlignment="Top" Height="25" Width="90" Margin="5,10,5,0" FontWeight="Bold" FontSize="14"/>
+									<TextBox x:Name="Bitlocker_keys_textBox" TextWrapping="NoWrap" Text="" Padding="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="5,40,5,0" IsReadOnly="True" FontFamily="Consolas" FontSize="14"/>
+								</Grid>
+							</Border>
+						</Grid>
+					</TabItem>
+					<TabItem x:Name="WindowsLAPS" Background="#FFE5EEFF">
+						<TabItem.Header>
+							<TextBlock Text="LAPS Password" Style="{StaticResource HeaderTextBlockStyle}" FontSize="16" FontWeight="Bold"/>
+						</TabItem.Header>
+						<Grid x:Name="GridWindowsLAPSTAB">
+							<Border x:Name="BorderGridWindowsLAPSTAB" BorderBrush="Black" BorderThickness="1" Margin="0,0,2,2" Background="#FFF7F7F7" CornerRadius="8">
+								<Grid x:Name="GridWindowsLAPSTABWindow">
+									<Button x:Name="Button_Get_WindowsLAPSPasswords" Content="Get LAPS Password" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25" Width="190" Margin="5,10,0,0" FontWeight="Bold" FontSize="14"/>
+									<Button x:Name="Button_Clear_WindowsLAPS_passwords" Content="Clear" HorizontalAlignment="Right" VerticalAlignment="Top" Height="25" Width="90" Margin="5,10,5,0" FontWeight="Bold" FontSize="14"/>
+									<TextBox x:Name="Windows_LAPS_textBox" TextWrapping="NoWrap" Text="" Padding="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="5,40,5,0" IsReadOnly="True" FontFamily="Consolas" FontSize="14"/>
 								</Grid>
 							</Border>
 						</Grid>
@@ -1478,6 +1510,7 @@ function DecodeBase64Image {
     $ObjBitmapImage
 }
 
+
 function Convert-Base64ToFile {
     Param(
         [String]$base64,
@@ -1492,6 +1525,45 @@ function Convert-Base64ToFile {
 }
 
 
+function Convert-Base64StringToText {
+    Param(
+        [String]$base64String
+    )
+
+	# Convert Base64 string to bytes
+	$bytes = [System.Convert]::FromBase64String($base64String)
+
+	# Convert bytes to string using UTF-8 encoding
+	$decodedText = [System.Text.Encoding]::UTF8.GetString($bytes)
+
+    return $decodedText
+}
+
+
+function Validate-GUID {
+	param (
+        [String]$GUID = $null
+    )
+	
+	if($GUID) {
+		# Regular expression for GUID validation
+		$guidRegex = '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$'
+
+		# Test if the variable matches the GUID pattern
+		if ($GUID -match $guidRegex) {
+			# GUID variable contains a valid GUID
+			return $True
+		} else {
+			# GUID variable does not contain a valid GUID
+			return $False
+		}
+	} else {
+		# Provided GUID is $Null
+		return $False
+	}
+}
+
+
 ##################################################################################################
 #endregion General functions
 
@@ -1503,59 +1575,157 @@ function Invoke-MSGraphGetRequestWithMSGraphAllPages {
         [String]$url
     )
 
-    $MSGraphRequest = $null
+    $MgGraphRequest = $null
     $AllMSGraphRequest = $null
 
 	Start-Sleep -Milliseconds $TimeOutBetweenGraphAPIRequests
 
     try {
-        $MSGraphRequest = Invoke-MSGraphRequest -Url $url -HttpMethod 'GET'
-        $Success = $?
 
-        if($Success) {
-            
-            # This does not work because we won't catch this if there is Value-attribute which is null
-            #if ($MSGraphRequest.Value) {
+		# Save results to this variable
+		$allGraphAPIData = @()
 
-            # Test if object has attribute named Value (whether value is null or not)
-            if((Get-Member -inputobject $MSGraphRequest -name 'Value' -Membertype Properties) -and (Get-Member -inputobject $MSGraphRequest -name '@odata.context' -Membertype Properties)) {
-                # Value property exists
-                $returnObject = $MSGraphRequest.Value
-            } else {
-                # Sometimes we get results without Value-attribute (eg. getting user details)
-                # We will return all we got as is
-                $returnObject = $MSGraphRequest
-            }
-        } else {
-            # Invoke-MSGraphRequest failed so we return false
-            return $null
-        }
+		do {
 
-        # Check if we have value starting https:// in attribute @odate.nextLink
-		# and check that $Top= parameter was NOT used. With $Top= parameter we can limit search results
-		# but that almost always results .nextLink being present if there is more data than top specified
-		# If we specified $Top= ourselfes then we don't want to get nextLink values
-		#
-		# So get GraphAllPages if there is valid nextlink and not $Top= used in url originally
-		if (($MSGraphRequest.'@odata.nextLink' -like 'https://*') -and (-not ($url.Contains('$top=')))) {
+			$MgGraphRequest = $null
+			$MgGraphRequest = Invoke-MgGraphRequest -Uri $Url -Method 'Get' -OutputType PSObject -ContentType "application/json"
 
-            # Get AllMSGraph pages
-            # This is also workaround to get objects without assigning them from .Value attribute
-            $AllMSGraphRequest = Get-MSGraphAllPages -SearchResult $MSGraphRequest
-            $Success = $?
+			if($MgGraphRequest) {
 
-            if($Success) {
-                $returnObject = $AllMSGraphRequest
-            } else {
-                # Getting Get-MSGraphAllPages failed
-                return $null
-            }
-        }
+				# Test if object has attribute named Value (whether value is null or not)
+				#if((Get-Member -inputobject $MgGraphRequest -name 'Value' -Membertype Properties) -and (Get-Member -inputobject $MgGraphRequest -name '@odata.context' -Membertype Properties)) {
+				if(Get-Member -inputobject $MgGraphRequest -name 'Value' -Membertype Properties) {
+					# Value property exists
+					$allGraphAPIData += $MgGraphRequest.Value
 
-        return $returnObject
+					# Check if we have value starting https:// in attribute @odate.nextLink
+					# and check that $Top= parameter was NOT used. With $Top= parameter we can limit search results
+					# but that almost always results .nextLink being present if there is more data than specified with top
+					# If we specified $Top= ourselves then we don't want to fetch nextLink values
+					#
+					# So get GraphAllPages if there is valid nextlink and $Top= was NOT used in url originally
+					if (($MgGraphRequest.'@odata.nextLink' -like 'https://*') -and (-not ($url.Contains('$top=')))) {
+						# Save nextLink url to variable and rerun do-loop
+						$Url = $MgGraphRequest.'@odata.nextLink'
+						Start-Sleep -Milliseconds $TimeOutBetweenGraphAPIRequests
+
+						# Continue to next round in Do-loop
+						Continue
+
+					} else {
+						# We dont have nextLink value OR
+						# $top= exists so we return what we got from first round
+						#return $allGraphAPIData
+						$Url = $null
+					}
+					
+				} else {
+					# Sometimes we get results without Value-attribute (eg. getting user details)
+					# We will return all we got as is
+					# because there should not be nextLink page in this case ???
+					return $MgGraphRequest
+				}
+			} else {
+				# Invoke-MGGraphRequest failed so we return false
+				return $null
+			}
+			
+		} while ($Url) # Always run once and continue if there is nextLink value
+
+
+		# We should not end here but just in case
+        return $allGraphAPIData
 
     } catch {
-        Write-Error "There was error with MSGraphRequest with url $url!"
+        Write-Error "There was error with MGGraphRequest with url $url!"
+        return $null
+    }
+}
+
+
+function Invoke-MGGraphPostRequest {
+    param (
+        [Parameter(Mandatory = $true)]
+        [String]$uri,
+		[Parameter(Mandatory = $true)]
+        [String]$body
+    )
+
+    $MGGraphRequest = $null
+
+	Start-Sleep -Milliseconds $TimeOutBetweenGraphAPIRequests
+
+    try {
+
+		# Save results to this variable
+		$allGraphAPIData = @()
+
+		do {
+
+			# Note! There seems to be either a bug or a feature with POST requests with Invoke-MgGraphRequest
+			# In some testings command succeeds but does not return anything to Powershell pipeline
+			# but with -Debug option you can see that the data has been fetched from Graph API
+			# For now one workaround is to save data to text file which we'll do here
+
+			# Original request which is not working
+			#$MGGraphRequest = Invoke-MgGraphRequest -Uri $Uri -Method 'Post' -Body $body.ToString() -OutputType PSObject -ContentType "application/json"
+
+			# Workaround to save data to random named text file first with parameter -OutputFilePath
+			$OutputFilePath = "$PSScriptRoot\MgGraphRequest_$(Get-Random).json"
+			
+			$MgGraphRequest = Invoke-MgGraphRequest -Uri $Uri -Method 'POST' -Body $body.ToString() -OutputFilePath $OutputFilePath -ContentType "application/json"
+
+			# Read and convert json data from temporary text file
+			$MgGraphRequest = Get-Content $OutputFilePath -Raw | ConvertFrom-Json
+
+			# Remove temporary file
+			if (Test-Path $OutputFilePath) {
+				Remove-Item -Path $OutputFilePath
+			}
+
+			if($MgGraphRequest) {
+
+				# Test if object has attribute named Value (whether value is null or not)
+				if((Get-Member -inputobject $MgGraphRequest -name 'Value' -Membertype Properties) -and (Get-Member -inputobject $MgGraphRequest -name '@odata.context' -Membertype Properties)) {
+					# Value property exists
+					$allGraphAPIData += $MgGraphRequest.Value
+
+					# Check if we have value starting https:// in attribute @odate.nextLink
+					# and check that $Top= parameter was NOT used. With $Top= parameter we can limit search results
+					# but that almost always results .nextLink being present if there is more data than specified with top
+					# If we specified $Top= ourselves then we don't want to fetch nextLink values
+					#
+					# So get GraphAllPages if there is valid nextlink and $Top= was NOT used in url originally
+					if (($MgGraphRequest.'@odata.nextLink' -like 'https://*') -and (-not ($uri.Contains('$top=')))) {
+						# Save nextLink url to variable and rerun do-loop
+						$Uri = $response.'@odata.nextLink'
+						Start-Sleep -Milliseconds $TimeOutBetweenGraphAPIRequests
+						Continue
+
+					} else {
+						# We dont have nextLink value OR anymore
+						# $top= exists so we return what we got from first round
+						return $allGraphAPIData
+					}
+					
+				} else {
+					# Sometimes we get results without Value-attribute (eg. getting user details)
+					# We will return all we got as is
+					return $MgGraphRequest
+				}
+			} else {
+				# Invoke-MGGraphRequest failed so we return false
+				return $null
+			}
+			
+		} while ($Uri) # Always run once and continue if there is nextLink value
+
+
+		# We should not end here but just in case
+        return $allGraphAPIData
+
+    } catch {
+        Write-Error "There was error with MGGraphRequest with url $uri!"
         return $null
     }
 }
@@ -2195,45 +2365,64 @@ function Download-IntunePostTypeReport {
 	Param(
 		[Parameter(Mandatory=$true,
 			HelpMessage = 'Enter Graph API Url')]
-		$GraphAPIUrl,
+		$Uri,
 		[Parameter(Mandatory=$true,
 			HelpMessage = 'Enter Graph API Post request')]
-		$GraphAPIPostRequest
+		$GraphAPIPostBody
 	)
 
 	# Initialize variables
 	# Not actually needed here
 	# but helps coder to think about loop logic
-	$MSGraphRequest = $null
+	$MgGraphRequest = $null
 	$ConfigurationPoliciesReportForDevice = @()
 	$count = $null
 
 	do {
 		Start-Sleep -Milliseconds $TimeOutBetweenGraphAPIRequests
 
-		$GraphAPIPostRequestJSON = $GraphAPIPostRequest | ConvertFrom-Json
+		$GraphAPIPostBodyJSON = $GraphAPIPostBody | ConvertFrom-Json
 
-		$top = $GraphAPIPostRequestJSON.top
-		$skip = $GraphAPIPostRequestJSON.skip
+		$top = $GraphAPIPostBodyJSON.top
+		$skip = $GraphAPIPostBodyJSON.skip
 
 		# DEBUG
 		#Write-Verbose "`$top=$top"
 		#Write-Verbose "`$skip=$skip"
 
-		$MSGraphRequest = Invoke-MSGraphRequest -Url $url -Content $GraphAPIPostRequest.ToString() -HttpMethod 'POST'
-		$Success = $?
+		# Note! There seems to be either a bug or a feature with POST requests with Invoke-MgGraphRequest
+		# In some testings command succeeds but does not return anything to Powershell pipeline
+		# but with -Debug option you can see that the data has been fetched from Graph API
+		# For now one workaround is to save data to text file which we'll do here
 
-		if($Success) {
+		# Original request which is not working
+		#$MSGraphRequest = Invoke-MGGraphRequest -Uri $url -Body $GraphAPIPostRequest.ToString() -Method 'POST' -OutputType PSObject -ContentType "application/json"
+
+		# Workaround to save data to random named text file first with parameter -OutputFilePath
+		$OutputFilePath = "$PSScriptRoot\MgGraphRequest_$(Get-Random).json"
+
+		$MgGraphRequest = $null
+		$MgGraphRequest = Invoke-MgGraphRequest -Uri $Uri -Method 'POST' -Body $GraphAPIPostBody.ToString() -OutputFilePath $OutputFilePath -ContentType "application/json"
+
+		# Read and convert json data from temporary text file
+		$MgGraphRequest = Get-Content $OutputFilePath -Raw | ConvertFrom-Json
+
+		# Remove temporary file
+		if (Test-Path $OutputFilePath) {
+			Remove-Item -Path $OutputFilePath
+		}
+
+		if($MgGraphRequest) {
 			#Write-Verbose "Success"
 
 			# Objectify report results
-			$MSGraphRequestObjectified = Objectify_JSON_Schema_and_Data_To_PowershellObjects $MSGraphRequest
+			$MgGraphRequestObjectified = Objectify_JSON_Schema_and_Data_To_PowershellObjects $MgGraphRequest
 			
 			# Save results to variable
-			$ConfigurationPoliciesReportForDevice += $MSGraphRequestObjectified
+			$ConfigurationPoliciesReportForDevice += $MgGraphRequestObjectified
 
 			# Get Count of results
-			$count = $MSGraphRequestObjectified.Count
+			$count = $MgGraphRequestObjectified.Count
 
 			if($count -ge $top) {
 				# Increase report skip-value with amount of results we got earlier (should be same as top)
@@ -2242,10 +2431,10 @@ function Download-IntunePostTypeReport {
 
 				# Increase count in json and convert to text
 				#$GraphAPIPostRequestJSON.top = $top
-				$GraphAPIPostRequestJSON.skip = $skip
+				$GraphAPIPostBodyJSON.skip = $skip
 
 				# Convert json to text
-				$GraphAPIPostRequest = $GraphAPIPostRequestJSON | ConvertTo-Json -Depth 3
+				$GraphAPIPostBody = $GraphAPIPostBodyJSON | ConvertTo-Json -Depth 3
 
 			} else {
 				# Got all results
@@ -2259,7 +2448,7 @@ function Download-IntunePostTypeReport {
 			}
 
 		} else {
-			# Invoke-MSGraphRequest failed
+			# Invoke-MGGraphRequest failed
 			Write-Error "Error getting Intune device Configuration Assignment information"
 			return 1
 		}
@@ -2284,7 +2473,7 @@ function Download-IntuneConfigurationProfiles2 {
 	$jsonCacheFilePath = "$PSScriptRoot\cache\$TenantId\$jsonCacheFileName"
 	
 	# Intune Policies to download including Assignment information
-	# Note that Endpint Security configurations (intents) do not expand assignments!!!
+	# Note that Endpoint Security configurations (intents) do not expand assignments!!!
 
 	Write-Verbose ''
 	Write-Verbose "Getting Intune configuration for url: $GraphAPIUrl"
@@ -2375,15 +2564,8 @@ function Download-IntuneConfigurationProfiles2 {
 function Download-IntuneFilters {
 	try {
 		$url = 'https://graph.microsoft.com/beta/deviceManagement/assignmentFilters?$select=*'
-		$MSGraphRequest = Invoke-MSGraphRequest -Url $url -HttpMethod 'GET'
-		$Success = $?
-
-		if (-not ($Success)) {
-			Write-Error "Error downloading Intune filters information"
-			return $null
-		} else {
-			$AllIntuneFilters = Get-MSGraphAllPages -SearchResult $MSGraphRequest	
-		}
+		
+		$AllIntuneFilters = Invoke-MSGraphGetRequestWithMSGraphAllPages $url
 
 		Write-Verbose "Found $($AllIntuneFilters.Count) Intune filters"
 
@@ -2586,29 +2768,17 @@ function Add-AzureADGroupDevicesAndUserMemberCountExtraProperties {
 
 		# DEBUG
 		#$requests_devices_count | ConvertTo-Json
+
 		$requests_devices_count_JSON = $requests_devices_count | ConvertTo-Json
 
-		$url = 'https://graph.microsoft.com/beta/$batch'
-		$MSGraphRequest = Invoke-MSGraphRequest -Url $url -Content $requests_devices_count_JSON.ToString() -HttpMethod 'POST'
-		$Success = $?
+		$AzureADGroups_Devices_MemberCount_Batch_Result = $null
+		$uri = 'https://graph.microsoft.com/beta/$batch'
+		$AzureADGroups_Devices_MemberCount_Batch_Result = Invoke-MGGraphPostRequest -Uri $uri -Body $requests_devices_count_JSON.ToString()
 
-		if($Success) {
+		if($AzureADGroups_Devices_MemberCount_Batch_Result) {
 			#Write-Host "Success"
 		} else {
-			# Invoke-MSGraphRequest failed
-			Write-Error "Error getting AzureAD groups devices count"
-			return 1
-		}
-
-		# Get AllMSGraph pages
-		# This is also workaround to get objects without assigning them from .Value attribute
-		$AzureADGroups_Devices_MemberCount_Batch_Result = Get-MSGraphAllPages -SearchResult $MSGraphRequest
-		$Success = $?
-
-		if($Success) {
-			#Write-Host "Success"
-		} else {
-			# Invoke-MSGraphRequest failed
+			# Invoke-MGGraphRequest failed
 			Write-Error "Error getting AzureAD groups devices count"
 			return 1
 		}
@@ -2641,27 +2811,14 @@ function Add-AzureADGroupDevicesAndUserMemberCountExtraProperties {
 
 		$requests_users_count_JSON = $requests_users_count | ConvertTo-Json
 
-		$url = 'https://graph.microsoft.com/beta/$batch'
-		$MSGraphRequest = Invoke-MSGraphRequest -Url $url -Content $requests_users_count_JSON.ToString() -HttpMethod 'POST'
-		$Success = $?
+		$uri = 'https://graph.microsoft.com/beta/$batch'
+		$AzureADGroups_Users_MemberCount_Batch_Result = $null
+		$AzureADGroups_Users_MemberCount_Batch_Result = Invoke-MGGraphPostRequest -Uri $uri -Body $requests_users_count_JSON.ToString()
 
-		if($Success) {
+		if($AzureADGroups_Users_MemberCount_Batch_Result) {
 			#Write-Host "Success"
 		} else {
-			# Invoke-MSGraphRequest failed
-			Write-Error "Error getting AzureAD groups users count"
-			return 1
-		}
-
-		# Get AllMSGraph pages
-		# This is also workaround to get objects without assigning them from .Value attribute
-		$AzureADGroups_Users_MemberCount_Batch_Result = Get-MSGraphAllPages -SearchResult $MSGraphRequest
-		$Success = $?
-
-		if($Success) {
-			#Write-Host "Success"
-		} else {
-			# Invoke-MSGraphRequest failed
+			# Invoke-MGGraphRequest failed
 			Write-Error "Error getting AzureAD groups users count"
 			return 1
 		}
@@ -2704,6 +2861,60 @@ function Add-AzureADGroupDevicesAndUserMemberCountExtraProperties {
 
 	return $AzureADGroups
 }
+
+
+function Get-BitlockerRecoveryKeys {
+	Param(
+		[Parameter(Mandatory=$true)]
+		$azureADDeviceId
+	)
+
+	$BitlockerRecoveryKeyInformationArray = @()
+
+	# Get Bitlocker Recovery keys Key Ids first (without actual Bitlocker Recovery Key value)
+	$uri = "https://graph.microsoft.com/beta/informationProtection/bitlocker/recoveryKeys?`$filter=deviceId%20eq%20%27$($azureADDeviceId)%27"
+	$BitlockerRecoveryKeyIds = Invoke-MSGraphGetRequestWithMSGraphAllPages $uri
+
+	if($BitlockerRecoveryKeyIds) {
+
+		# We may have multiple Keys so loop each key and get actual RecoveryKey value from each Key
+		foreach ($BitlockerRecoveryKeyId in $BitlockerRecoveryKeyIds) {
+
+			# Get each Bitlocker Recovery Key values
+			$uri = "https://graph.microsoft.com/beta/informationProtection/bitlocker/recoveryKeys/$($BitlockerRecoveryKeyId.Id)?`$select=key"
+			$BitlockerRecoveryKeyIdInformation = Invoke-MSGraphGetRequestWithMSGraphAllPages $uri
+
+			if($BitlockerRecoveryKeyIdInformation) {
+				$BitlockerRecoveryKeyInformationArray += $BitlockerRecoveryKeyIdInformation
+			}
+		}
+		
+	} else {
+		return $null
+	}
+
+	return $BitlockerRecoveryKeyInformationArray
+}
+
+
+
+
+function Get-WindowsLAPSPassword {
+	Param(
+		[Parameter(Mandatory=$true)]
+		$azureADDeviceId
+	)
+
+	# Get Windows LAPS Password (there should be only one value)
+	$uri = "https://graph.microsoft.com/v1.0/directory/deviceLocalCredentials/$($azureADDeviceId)?`$select=credentials"
+	$WindowsLAPSPassword = $null
+	$WindowsLAPSPassword = Invoke-MSGraphGetRequestWithMSGraphAllPages $uri
+
+	return $WindowsLAPSPassword
+}
+
+
+
 
 function Fix-UrlSpecialCharacters {
 	Param (
@@ -2919,9 +3130,14 @@ function Search-IntuneDevices {
 		# Set button font to normal
 		$WPFButton_GridIntuneDeviceDetailsBorderTop_CreateReport.FontWeight = "Normal"
 
-		[array]$AllSearchResults = Get-IntuneManagedDevice -managedDeviceId $SearchString
-		$Success = $?
-		if($Success -and $AllSearchResults) {
+		#[array]$AllSearchResults = Get-IntuneManagedDevice -managedDeviceId $SearchString
+		$Uri = "https://graph.microsoft.com/beta/deviceManagement/managedDevices/$SearchString"
+		$Script:IntuneManagedDevice = $null
+		
+		$IntuneDevice = Invoke-MSGraphGetRequestWithMSGraphAllPages $Uri
+		[array]$AllSearchResults += $IntuneDevice
+
+		if($AllSearchResults) {
 			Write-Verbose "Found Intune device: $($AllSearchResults.deviceName)"
 			foreach($device in $AllSearchResults) {
 				$lastSyncDateTime = $device.lastSyncDateTime
@@ -3195,10 +3411,11 @@ function Get-DeviceInformation {
 	$IntuneDeviceId = $id
 	
 	# Get Intune device object
-	$Script:IntuneManagedDevice = Get-IntuneManagedDevice -managedDeviceId $IntuneDeviceId
-	$Success = $?
-
-	if (-not $Success) {
+	$Uri = "https://graph.microsoft.com/beta/deviceManagement/managedDevices/$IntuneDeviceId"
+	$Script:IntuneManagedDevice = $null
+	$Script:IntuneManagedDevice = Invoke-MSGraphGetRequestWithMSGraphAllPages $Uri
+	
+	if (-not $Script:IntuneManagedDevice) {
 		Write-Host "Error finding Intune deviceId $IntuneDeviceId!" -ForegroundColor Red
 		$WPFIntuneDeviceDetails_textBox_DeviceName.Text = "Could not find device"
         $WPFIntuneDeviceDetails_textBox_DeviceName.Foreground = "red"
@@ -3430,6 +3647,14 @@ function Get-DeviceInformation {
                             $WindowsSupportEndsInDays = New-TimeSpan $CurrentDate 2024-10-08 | Select-Object -ExpandProperty Days
                         }
                     }
+			'10.0.22631.*' {   $Version = '11 23H2'
+                        if(($operatingSystemEdition -eq 'Ent') -or ($operatingSystemEdition -eq 'Edu')) {
+                            $WindowsSupportEndsInDays = New-TimeSpan $CurrentDate 2026-11-10 | Select-Object -ExpandProperty Days
+                        }
+                        if(($operatingSystemEdition -eq 'Home') -or ($operatingSystemEdition -like '*Pro*') -or ($operatingSystemEdition -like '*SE*')) {
+                            $WindowsSupportEndsInDays = New-TimeSpan $CurrentDate 2025-11-11 | Select-Object -ExpandProperty Days
+                        }
+                    }
             Default {
                         $Version = $Script:IntuneManagedDevice.operatingSystem
                     }
@@ -3588,7 +3813,7 @@ function Get-DeviceInformation {
 	# Get EnrollmentConfigurationPolicies
 	# Get Enrollment Status Page and Enrollment Restrictions info
 	# Note this is POST type request
-	$url = 'https://graph.microsoft.com/beta/deviceManagement/reports/getEnrollmentConfigurationPoliciesByDevice'
+	$uri = 'https://graph.microsoft.com/beta/deviceManagement/reports/getEnrollmentConfigurationPoliciesByDevice'
 
 	$GraphAPIPostRequest = @"
 {
@@ -3602,26 +3827,13 @@ function Get-DeviceInformation {
 "@
 
 	Write-Host "Get Intune Enrollment Status Page and Enrollment Restrictions used in this device's enrollment"
-	$MSGraphRequest = Invoke-MSGraphRequest -Url $url -Content $GraphAPIPostRequest.ToString() -HttpMethod 'POST'
-	$Success = $?
-
-	if($Success) {
+	$EnrollmentConfigurationPoliciesByDevice = $null
+	$EnrollmentConfigurationPoliciesByDevice = Invoke-MGGraphPostRequest -Uri $uri -Body $GraphAPIPostRequest
+	
+	if($EnrollmentConfigurationPoliciesByDevice) {
 		#Write-Host "Success"
 	} else {
-		# Invoke-MSGraphRequest failed
-		Write-Error "Error getting Intune Enrollment Status Page and Enrollment Restrictions information"
-		return 1
-	}
-
-	# Get AllMSGraph pages
-	# This is also workaround to get objects without assigning them from .Value attribute
-	$EnrollmentConfigurationPoliciesByDevice = Get-MSGraphAllPages -SearchResult $MSGraphRequest
-	$Success = $?
-
-	if($Success) {
-		#Write-Host "Success"
-	} else {
-		# Invoke-MSGraphRequest failed
+		# Invoke-MGGraphRequest failed
 		Write-Error "Error getting Intune Enrollment Status Page and Enrollment Restrictions information"
 		return 1
 	}
@@ -3804,7 +4016,12 @@ function Get-DeviceInformation {
 		$AzureADDeviceExtensionAttributesToolTip = ($Script:AzureADDevice.extensionAttributes | Format-List | Out-String).Trim()
 		$WPFIntuneDeviceDetails_textBox_DeviceName_ToolTip_extensionAttributes.Text = $AzureADDeviceExtensionAttributesToolTip
 
-        $url = "https://graph.microsoft.com/beta/devices/$($Script:AzureADDevice.id)/memberOf?_=1577625591876"
+        # Original. This does not include nested groups
+		#$url = "https://graph.microsoft.com/beta/devices/$($Script:AzureADDevice.id)/memberOf?_=1577625591876"
+		
+		# Transitive groups include normal groups and also groups where membership comes from nested group
+		$url = "https://graph.microsoft.com/beta/devices/$($Script:AzureADDevice.id)/transitiveMemberOf?_=1577625591876"
+		
         $Script:deviceGroupMemberships = Invoke-MSGraphGetRequestWithMSGraphAllPages $url
 
         if($Script:deviceGroupMemberships) {
@@ -3982,39 +4199,38 @@ function Get-DeviceInformation {
 
 		$script:ConfigurationsAssignmentsObservableCollection = @()
 
-		# Get Device Configurations install state - OLD url
-		#$url = "https://graph.microsoft.com/beta/deviceManagement/managedDevices/$IntuneDeviceId/deviceConfigurationStates"
-
-		# Intune uses this Graph API url - OLD url
-		#$url = "https://graph.microsoft.com/beta/deviceManagement/managedDevices/$IntuneDeviceId/deviceConfigurationStates?`$filter=((platformType%20eq%20'android')%20or%20(platformType%20eq%20'androidforwork')%20or%20(platformType%20eq%20'androidworkprofile')%20or%20(platformType%20eq%20'ios')%20or%20(platformType%20eq%20'macos')%20or%20(platformType%20eq%20'WindowsPhone81')%20or%20(platformType%20eq%20'Windows81AndLater')%20or%20(platformType%20eq%20'Windows10AndLater')%20or%20(platformType%20eq%20'all'))&_=1578056411936"
-		
 		# Intune uses this nowdays 30.3.2022
 		# Note this is post type request
-		$url = "https://graph.microsoft.com/beta/deviceManagement/reports/getConfigurationPoliciesReportForDevice"
+		$uri = "https://graph.microsoft.com/beta/deviceManagement/reports/getConfigurationPoliciesReportForDevice"
 
-		$GraphAPIPostRequest = @"
+
+# Updated 20240508 for MgGraphRequest
+$GraphAPIPostBody = @"
 {
-	"select": [
-		"IntuneDeviceId",
-		"PolicyBaseTypeName",
-		"PolicyId",
-		"PolicyStatus",
-		"UPN",
-		"UserId",
-		"PspdpuLastModifiedTimeUtc",
-		"PolicyName",
-		"UnifiedPolicyType"
-	],
-	"filter": "((PolicyBaseTypeName eq 'Microsoft.Management.Services.Api.DeviceConfiguration') or (PolicyBaseTypeName eq 'DeviceManagementConfigurationPolicy') or (PolicyBaseTypeName eq 'DeviceConfigurationAdmxPolicy') or (PolicyBaseTypeName eq 'Microsoft.Management.Services.Api.DeviceManagementIntent')) and (IntuneDeviceId eq '$IntuneDeviceId')",
-	"skip": 0,
-	"top": 50
+    "select":  [
+                   "IntuneDeviceId",
+                   "PolicyBaseTypeName",
+                   "PolicyId",
+                   "PolicyStatus",
+                   "UPN",
+                   "UserId",
+                   "PspdpuLastModifiedTimeUtc",
+                   "PolicyName",
+                   "UnifiedPolicyType"
+               ],
+    "filter":  "((PolicyBaseTypeName eq \u0027Microsoft.Management.Services.Api.DeviceConfiguration\u0027) or (PolicyBaseTypeName eq \u0027DeviceManagementConfigurationPolicy\u0027) or (PolicyBaseTypeName eq \u0027DeviceConfigurationAdmxPolicy\u0027) or (PolicyBaseTypeName eq \u0027Microsoft.Management.Services.Api.DeviceManagementIntent\u0027)) and (IntuneDeviceId eq \u0027$IntuneDeviceId\u0027)",
+    "skip":  0,
+    "top":  50,
+    "orderBy":  [
+                    "PolicyName"
+                ]
 }
 "@
 
-		Write-Host "Get Intune device Configuration Assignment information"
-		$ConfigurationPoliciesReportForDevice = Download-IntunePostTypeReport -GraphAPIUrl $url -GraphAPIPostRequest $GraphAPIPostRequest
-		Write-Host "Found $($ConfigurationPoliciesReportForDevice.Count) Configuration Assignments"
 
+		Write-Host "Get Intune device Configuration Assignment information"
+		$ConfigurationPoliciesReportForDevice = Download-IntunePostTypeReport -Uri $uri -GraphAPIPostBody $GraphAPIPostBody
+		Write-Host "Found $($ConfigurationPoliciesReportForDevice.Count) Configuration Assignments"
 
 		# Sort policies by PolicyId so we will download policies only once in next steps
 		$ConfigurationPoliciesReportForDevice = $ConfigurationPoliciesReportForDevice | Sort-Object -Property PolicyId
@@ -4056,6 +4272,7 @@ function Get-DeviceInformation {
 				1 { $ConfigurationPolicyReportState.PolicyStatus = 'Not applicable' }
 				2 { $ConfigurationPolicyReportState.PolicyStatus = 'Succeeded' }   # User based result?
 				3 { $ConfigurationPolicyReportState.PolicyStatus = 'Succeeded' }   # Device based result?
+				4 { $ConfigurationPolicyReportState.PolicyStatus = 'Error' }   	   # Device based result ??? - This is unknown but should be error
 				5 { $ConfigurationPolicyReportState.PolicyStatus = 'Error' }   	   # User based result?
 				6 { $ConfigurationPolicyReportState.PolicyStatus = 'Conflict' }
 				Default { }
@@ -4493,6 +4710,12 @@ Function Clear-UIData {
 	$WPFTextBlock_Overview_LatestCheckedInUserName.Text = 'Latest or Selected Checked-In User'
 	$WPFTextBox_Overview_LatestCheckedInUser.Text = ''
 	
+	# Bitlocker Recovery Keys tab
+	$WPFBitlocker_keys_textBox.Text = ''
+	
+	# Windows LAPS tab
+	$WPFWindows_LAPS_textBox.Text = ''
+	
 	$WPFIntuneDeviceDetails_json_textBox.Text = ''
 	$WPFAzureADDeviceDetails_json_textBox.Text = ''
 	$WPFPrimaryUserDetails_json_textBox.Text = ''
@@ -4742,6 +4965,130 @@ $WPFGridIntuneDeviceDetailsBorderTop_image_CreateReport_X.Add_MouseLeftButtonDow
 		$WPFlabel_GridIntuneDeviceDetailsBorderTop_FoundXDevices.Visibility = 'Hidden'
 		
 })
+
+
+# Get Bitlocker Recovery Keys
+$WPFButton_Get_BitlockerRecoveryKeys.Add_Click({
+
+	# Bitlocker Recovery Key is stored with Entra device object
+	$azureADDeviceId = $Script:IntuneManagedDevice.azureADDeviceId
+
+	# Continue only if we have valid deviceId GUID
+	if(Validate-GUID $azureADDeviceId) {
+
+		Write-Host "Get Bitlocker Recovery Keys information"
+
+		# Get Bitlocker Recovery Key information
+		$BitlockerRecoveryKeysArray = Get-BitlockerRecoveryKeys -azureADDeviceId $azureADDeviceId
+		
+		if($BitlockerRecoveryKeysArray) {
+
+			# Quick print json for testing
+			#$BitlockerRecoveryKeyText = $BitlockerRecoveryKeysArray | ConvertTo-Json
+
+			# Add human readable property names and values
+			foreach ($BitlockerRecoveryKey in $BitlockerRecoveryKeysArray) {
+				if($BitlockerRecoveryKey.volumeType -eq 1) {
+					$BitlockerRecoveryKey | Add-Member -MemberType noteProperty -Name 'Drive Type' -Value 'Operating system drive'
+				} else {
+					$BitlockerRecoveryKey | Add-Member -MemberType noteProperty -Name 'Drive Type' -Value 'Non-Operating system drive'
+				}
+
+				$BitlockerRecoveryKey | Add-Member -MemberType noteProperty -Name 'Bitlocker Key Id' -Value $BitlockerRecoveryKey.id
+				$BitlockerRecoveryKey | Add-Member -MemberType noteProperty -Name 'Bitlocker Recovery Key' -Value $BitlockerRecoveryKey.key
+				
+				$BitlockerRecoveryKey | Add-Member -MemberType noteProperty -Name 'Backed up' -Value $BitlockerRecoveryKey.createdDateTime
+				
+			}
+
+			# Format information to String List
+			$BitlockerRecoveryKeyText = ($BitlockerRecoveryKeysArray | Select-Object -Property 'Bitlocker Key Id', 'Bitlocker Recovery Key', 'Drive Type', 'Backed up' | Format-List | Out-String).Trim()
+			
+			$WPFBitlocker_keys_textBox.Text = $BitlockerRecoveryKeyText
+		} else {
+			# There was no Bitlocker Recovery Keys found
+			$WPFBitlocker_keys_textBox.Text = 'There are no Bitlocker Recovery Keys for this device'
+		}			
+	} else {
+		$WPFBitlocker_keys_textBox.Text = 'Get device information first and then try again...'
+	}
+
+})
+
+
+# Clear Bitlocker Recovery Key information
+$WPFButton_Clear_BitlockerRecoveryKeys.Add_Click({
+	$WPFBitlocker_keys_textBox.Text = ''
+})
+
+
+$WPFButton_Get_WindowsLAPSPasswords.Add_Click({
+
+	# Windows LAPS Password is stored with Entra device object
+	$azureADDeviceId = $Script:IntuneManagedDevice.azureADDeviceId
+
+	# Continue only if we have valid deviceId GUID
+	if(Validate-GUID $azureADDeviceId) {
+
+		Write-Host "Get Windows LAPS Password information"
+
+		# Get Windows LAPS Passwords (this should be one value only, not array)
+		$WindowsLAPSPassword = Get-WindowsLAPSPassword -azureADDeviceId $azureADDeviceId
+		
+		if($WindowsLAPSPassword) {
+
+			# Quick print json for testing
+			#$WindowsLAPSPasswordText = $WindowsLAPSPassword | ConvertTo-Json
+
+			# Add human readable property names and values
+			# There should be only one value so foreach should not be needed. But here it still is, just in case :)
+
+			# Get newest credentials object
+			$LAPSCredentialsObject = $WindowsLAPSPassword.credentials | Sort-Object -Property backupDateTime -Descending | Select-Object -First 1
+			
+			
+			# Add property Account name
+			$WindowsLAPSPassword | Add-Member -MemberType noteProperty -Name 'Account name' -Value $LAPSCredentialsObject.accountName
+			
+			# Add property Security ID
+			$WindowsLAPSPassword | Add-Member -MemberType noteProperty -Name 'Security ID' -Value $LAPSCredentialsObject.accountSid
+			
+			
+			# Convert Base64 password to clear text
+			$PasswordClearText = Convert-Base64StringToText $LAPSCredentialsObject.passwordBase64
+			
+			# Add property Local administrator password
+			$WindowsLAPSPassword | Add-Member -MemberType noteProperty -Name 'Local administrator password' -Value $PasswordClearText
+
+
+			# Add property Last password rotation
+			$WindowsLAPSPassword | Add-Member -MemberType noteProperty -Name 'Last password rotation' -Value $LAPSCredentialsObject.backupDateTime
+			
+			# Add property Next password rotation
+			$WindowsLAPSPassword | Add-Member -MemberType noteProperty -Name 'Next password rotation' -Value $WindowsLAPSPassword.refreshDateTime
+
+			# Format information to String List
+			$WindowsLAPSPasswordText = ($WindowsLAPSPassword | Select-Object -Property 'Account name', 'Security ID', 'Local administrator password', 'Last password rotation', 'Next password rotation' | Format-List | Out-String).Trim()
+			
+			$WPFWindows_LAPS_textBox.Text = $WindowsLAPSPasswordText
+		} else {
+			# There was no Bitlocker Recovery Keys found
+			$WPFWindows_LAPS_textBox.Text = 'No LAPS password found for this device'
+		}			
+	} else {
+		$WPFWindows_LAPS_textBox.Text = 'Get device information first and then try again...'
+	}
+
+
+})
+
+
+
+# Clear Windows LAPS information
+$WPFButton_Clear_WindowsLAPS_passwords.Add_Click({
+	$WPFWindows_LAPS_textBox.Text = ''
+})
+
 
 
 #### Events ####
@@ -5552,6 +5899,17 @@ $Form.Add_Closing{
 # Shows the form
 #===========================================================================
 
+# Check we are running on Windows Powershell
+# WPF - Windows Presentation Framework does not work with Powershell (core)
+if($PSVersionTable.PSEdition -eq 'Core') {
+	Write-Host "`nThis script does not work with Powershell Core!" -ForegroundColor Red
+	Write-Host "WPF - Windows Presentation Framework GUI requires Windows Powershell" -ForegroundColor Yellow
+	Write-Host "Run this script with Windows Powershell`n" -ForegroundColor Yellow
+	Exit 0
+}
+
+Write-Host "IntuneDeviceDetailsGUI $ScriptVersion`n" -ForegroundColor Cyan
+
 # Initiate variables
 
 [array]$script:AppsAssignmentsObservableCollection = @()
@@ -5786,35 +6144,63 @@ $WPFcheckBox_SkipAppAndConfigurationAssignmentReport.ToolTip = "Quicker search t
 
 ##########################################################################################
 
+####### Connect to Graph API with MgGraph Authentication module
 
-####### Connect to Graph API
-# Update Graph API schema to beta to get Win32LobApps and possible other new features also
-Write-Host "Connecting to Intune using Powershell Intune-Module"
-Update-MSGraphEnvironment -SchemaVersion 'beta'
+# Try to import Microsoft.Graph.Authentication module
+# This script uses only Invoke-MgGraphRequest command so Authentication module is enough (at least for now)
+
+Write-Host "Import module Microsoft.Graph.Authentication"
+Import-Module Microsoft.Graph.Authentication
 $Success = $?
 
-if (-not $Success) {
-	Write-Host "Failed to update MSGraph Environment schema to Beta!`n" -ForegroundColor Red
-	Write-Host "Make sure you have installed Intune Powershell module"
-	Write-Host "You can install Intune module to your user account with command:`nInstall-Module -Name Microsoft.Graph.Intune -Scope CurrentUser" -ForegroundColor Yellow
-	Write-Host "`nor you can install machine-wide Intune module with command:`nInstall-Module -Name Microsoft.Graph.Intune" -ForegroundColor Yellow
-	Write-Host "More information: https://github.com/microsoft/Intune-PowerShell-SDK"
+if($Success) {
+	# Module imported successfully
+	Write-Host "Success`n" -ForegroundColor Green
+} else {
+	Write-Host "Failed"  -ForegroundColor Red
+	Write-Host "Make sure you have installed module Microsoft.Graph.Authentication"
+	Write-Host "You can install module without admin rights to your user account with command:`n`nInstall-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser" -ForegroundColor Yellow
+	Write-Host "`nor you can install machine-wide module with with admin rights using command:`nInstall-Module -Name Microsoft.Graph.Authentication"
+	Write-Host ""
 	Exit 1
 }
 
-$MSGraphEnvironment = Connect-MSGraph
+
+# Define Graph API scopes
+# Notice there are only read scope so this tool is safe and only doing read operations
+
+# For Bitlocker Revoery Recovery Keys information both scopes are required
+# "BitLockerKey.ReadBasic.All", "BitLockerKey.Read.All"
+
+$scopes = "DeviceManagementManagedDevices.Read.All", "DeviceManagementApps.Read.All", "DeviceManagementConfiguration.Read.All", "User.Read.All", "Group.Read.All", "GroupMember.Read.All", "Directory.Read.All", "BitLockerKey.ReadBasic.All", "BitLockerKey.Read.All"
+
+Write-Host "Connect to Graph API"
+$MgGraph = Connect-MgGraph -scopes $scopes
 $Success = $?
 
-if ($Success -and $MSGraphEnvironment) {
-	$TenantId = $MSGraphEnvironment.tenantId
-	$AdminUserUPN = $MSGraphEnvironment.upn
+if ($Success -and $MgGraph) {
+	Write-Host "Success`n" -ForegroundColor Green
 
-	$WPFlabel_ConnectedAsUser_UserName.Content = $AdminUserUPN
+	# Get MgGraph session details
+	$MgContext = Get-MgContext
+	
+	if($MgContext) {
+	
+		$TenantId = $MgContext.TenantId
+		$AdminUserUPN = $MgContext.Account
+
+		$WPFlabel_ConnectedAsUser_UserName.Content = $AdminUserUPN
+	} else {
+		Write-Host "Error getting MgContext information!`nScript will exit!" -ForegroundColor Red
+		Exit 1
+	}
 	
 } else {
-	Write-Host "Could not connect to MSGraph!" -ForegroundColor Red
+	Write-Host "Could not connect to Graph API!" -ForegroundColor Red
 	Exit 1	
 }
+
+Write-Host "Connected to Intune tenant:`n$TenantId`n$AdminUserUPN`n"
 
 
 # Create tenant specific cache folder if not exist
