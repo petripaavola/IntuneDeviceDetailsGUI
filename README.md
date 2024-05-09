@@ -1,8 +1,16 @@
-# Intune Device Details GUI ver. 2.974 (updated 19.3.2023)
+# Intune Device Details GUI ver. 2.98 (updated 2024-05-09)
 
-## Note! New MgGraph-version of this script with new features is released in few hours. Stay tuned. ##
+### Note! Script uses now Microsoft.Graph.Authentication module ###
 
 Go to script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)
+
+**Version 2.98 update to Microsoft Graph module.**
+* **Script uses now Microsoft.Graph.Authentication Powershell module**
+  * You can install Microsoft Graph module with command: **Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser**
+  * Script uses only Read Scopes for Graph API
+* New feature to show Bitlocker Recovery Keys
+* New feature to show Windows LAPS Password
+* Device group memberships shows also nested groups memberships which will help show Application and Configuration target groups
 
 **Version 2.974 is another bigger update.**
 
@@ -28,6 +36,8 @@ Assignment group information helps admins to understand why apps and configurati
   * searching with user email address also shows devices where user has logged-in (this is not shown in MEM/Intune search)
 * **Show Application Assignments with AzureAD Groups and Filters information**
 * **Show Configurations Assignments with AzureAD Groups and Filters information**
+* **Show Bitlocker Recovery Keys**
+* **Show Windows LAPS Password**
 * Highlight assignment states with colors to easily see what is happening
   * For example highlight Not Applicable application assignment with yellow and usually you notice that Filter is reason for Not Applicable state
 * Show Recently logged in user(s)
@@ -64,10 +74,10 @@ Assignment group information helps admins to understand why apps and configurati
 
 Run script in **Windows Powershell**. Windows Presentations Framework (WPF) based GUIs don´t work with Powershell core.
 
-**make sure you have installed Intune Powershell module and allow running Powershell scripts**
+**Make sure you have installed Microsoft.Graph.Authentication module and allow running Powershell scripts**
 ```
-# Install Intune Powershell module
-Install-Module -Name Microsoft.Graph.Intune -Scope CurrentUser
+# Install Microsoft.Graph.Authentication module
+Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser
 
 # Allow running Powershell scripts
 
