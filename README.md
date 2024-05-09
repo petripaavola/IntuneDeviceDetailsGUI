@@ -1,4 +1,7 @@
 # Intune Device Details GUI ver. 2.974 (updated 19.3.2023)
+
+## Note! New MgGraph-version of this script with new features is released in few hours. Stay tuned. ##
+
 Go to script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)
 
 **Version 2.974 is another bigger update.**
