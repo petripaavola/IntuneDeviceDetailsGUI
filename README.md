@@ -8,8 +8,8 @@ Go to script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)
 * **Script uses now Microsoft.Graph.Authentication Powershell module**
   * You can install Microsoft Graph module with command: **Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser**
   * Script uses only Read Scopes for Graph API
-* New feature to show Bitlocker Recovery Keys
-* New feature to show Windows LAPS Password
+* New feature to show **Bitlocker Recovery Keys**
+* New feature to show **Windows LAPS Password**
 * Device group memberships shows also nested groups memberships which will help show Application and Configuration target groups
 
 **Version 2.974 is another bigger update.**
