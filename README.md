@@ -1,4 +1,4 @@
-# Intune Device Details GUI ver. 2.98 (updated 2024-05-09)
+# Intune Device Details GUI ver. 2.982 (updated 2024-05-13)
 
 ### Note! Script uses now Microsoft.Graph.Authentication module ###
 
@@ -7,6 +7,11 @@
 
 There is Preview version available which have some bug fixes and other fixes  
 Go to [Preview page](./Preview)
+
+**Version 2.982 update to Microsoft Graph module.**
+* Added Graph API scope **DeviceManagementServiceConfig.Read.All** to get deviceEnrollmentConfiguration information
+* Changed Bitlocker Recovery Keys and LAPS Password **dateTime to current timezone**
+* Improved Graph authentication so script will fail if we don't see TenantId (which should mean authentication failed somehow even if it may have seem to be worked ok)
 
 **Version 2.98 update to Microsoft Graph module.**
 * **Script uses now Microsoft.Graph.Authentication Powershell module**
