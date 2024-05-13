@@ -1,6 +1,6 @@
 ﻿<#
 .Synopsis
-   Intune Device Details GUI ver 2.98 (MgGraph version)
+   Intune Device Details GUI ver 2.982 (MgGraph version)
    
 
    Author:
@@ -8,7 +8,7 @@
    Modern Management Principal
    Microsoft MVP - Windows and Devices
    
-   2024-05-09
+   2024-05-13
    
    https://github.com/petripaavola/IntuneDeviceDetailsGUI
 .DESCRIPTION
@@ -82,7 +82,7 @@ Param(
     [String]$id = $null
 )
 
-$ScriptVersion = "ver 2.98"
+$ScriptVersion = "ver 2.982"
 $IntuneDeviceId = $id
 $TimeOutBetweenGraphAPIRequests = 300
 
@@ -3832,37 +3832,43 @@ function Get-DeviceInformation {
 	
 	if($EnrollmentConfigurationPoliciesByDevice) {
 		#Write-Host "Success"
+
+		$EnrollmentConfigurationPoliciesByDevice = Objectify_JSON_Schema_and_Data_To_PowershellObjects $EnrollmentConfigurationPoliciesByDevice
+
+		if($EnrollmentConfigurationPoliciesByDevice) {
+			Write-Verbose "Found EnrollmentConfigurationPoliciesByDevice information."
+
+			# DEBUG
+			#$EnrollmentConfigurationPoliciesByDevice | ConvertTo-Json | Set-Clipboard
+			
+			$DeviceTypeEnrollmentRestrictionObject = $EnrollmentConfigurationPoliciesByDevice | Where-Object PolicyType_loc -eq 'Device type enrollment restriction'
+			$DeviceTypeEnrollmentRestrictionPolicyId = $DeviceTypeEnrollmentRestrictionObject.PolicyId
+			$DeviceTypeEnrollmentRestrictionProfileName = $DeviceTypeEnrollmentRestrictionObject.ProfileName
+			$WPFtextBox_EnrollmentRestrictions.Text = $DeviceTypeEnrollmentRestrictionProfileName
+
+			if($DeviceTypeEnrollmentRestrictionPolicyId) {
+				# Enable right click menu if there is Device Type Enrollment Restriction Policy Id
+				$WPFtextBox_EnrollmentRestrictions_Menu_OpenEnrollmentRestrictionProfilesInBrowser.isEnabled = $True
+			}
+
+
+			$EnrollmentStatusPageObject = $EnrollmentConfigurationPoliciesByDevice | Where-Object PolicyType_loc -eq 'Enrollment status page'
+			$Script:EnrollmentStatusPagePolicyId = $EnrollmentStatusPageObject.PolicyId
+			$Script:EnrollmentStatusPageProfileName = $EnrollmentStatusPageObject.ProfileName
+			$WPFtextBox_EnrollmentStatusPage.Text = $EnrollmentStatusPageProfileName
+
+			if($Script:EnrollmentStatusPagePolicyId) {
+				# Enable right click menu if there is EnrollmentProfile ID
+				$WPFtextBox_EnrollmentStatusPage_Menu_OpenESPProfileInBrowser.isEnabled = $True
+			}
+		} else {
+			Write-Verbose "No EnrollmentConfigurationPoliciesByDevice found."
+		}
+		
 	} else {
 		# Invoke-MGGraphRequest failed
 		Write-Error "Error getting Intune Enrollment Status Page and Enrollment Restrictions information"
-		return 1
-	}
-
-	$EnrollmentConfigurationPoliciesByDevice = Objectify_JSON_Schema_and_Data_To_PowershellObjects $EnrollmentConfigurationPoliciesByDevice
-
-	# DEBUG
-	#$EnrollmentConfigurationPoliciesByDevice | ConvertTo-Json | Set-Clipboard
-	
-	$DeviceTypeEnrollmentRestrictionObject = $EnrollmentConfigurationPoliciesByDevice | Where-Object PolicyType_loc -eq 'Device type enrollment restriction'
-	$DeviceTypeEnrollmentRestrictionPolicyId = $DeviceTypeEnrollmentRestrictionObject.PolicyId
-	$DeviceTypeEnrollmentRestrictionProfileName = $DeviceTypeEnrollmentRestrictionObject.ProfileName
-	$WPFtextBox_EnrollmentRestrictions.Text = $DeviceTypeEnrollmentRestrictionProfileName
-
-	if($DeviceTypeEnrollmentRestrictionPolicyId) {
-		# Enable right click menu if there is Device Type Enrollment Restriction Policy Id
-		$WPFtextBox_EnrollmentRestrictions_Menu_OpenEnrollmentRestrictionProfilesInBrowser.isEnabled = $True
-	}
-
-
-
-	$EnrollmentStatusPageObject = $EnrollmentConfigurationPoliciesByDevice | Where-Object PolicyType_loc -eq 'Enrollment status page'
-	$Script:EnrollmentStatusPagePolicyId = $EnrollmentStatusPageObject.PolicyId
-	$Script:EnrollmentStatusPageProfileName = $EnrollmentStatusPageObject.ProfileName
-	$WPFtextBox_EnrollmentStatusPage.Text = $EnrollmentStatusPageProfileName
-
-	if($Script:EnrollmentStatusPagePolicyId) {
-		# Enable right click menu if there is EnrollmentProfile ID
-		$WPFtextBox_EnrollmentStatusPage_Menu_OpenESPProfileInBrowser.isEnabled = $True
+		#return 1
 	}
 
 	
@@ -4997,7 +5003,7 @@ $WPFButton_Get_BitlockerRecoveryKeys.Add_Click({
 				$BitlockerRecoveryKey | Add-Member -MemberType noteProperty -Name 'Bitlocker Key Id' -Value $BitlockerRecoveryKey.id
 				$BitlockerRecoveryKey | Add-Member -MemberType noteProperty -Name 'Bitlocker Recovery Key' -Value $BitlockerRecoveryKey.key
 				
-				$BitlockerRecoveryKey | Add-Member -MemberType noteProperty -Name 'Backed up' -Value $BitlockerRecoveryKey.createdDateTime
+				$BitlockerRecoveryKey | Add-Member -MemberType noteProperty -Name 'Backed up' -Value ($BitlockerRecoveryKey.createdDateTime).ToLocalTime()
 				
 			}
 
@@ -5062,10 +5068,10 @@ $WPFButton_Get_WindowsLAPSPasswords.Add_Click({
 
 
 			# Add property Last password rotation
-			$WindowsLAPSPassword | Add-Member -MemberType noteProperty -Name 'Last password rotation' -Value $LAPSCredentialsObject.backupDateTime
+			$WindowsLAPSPassword | Add-Member -MemberType noteProperty -Name 'Last password rotation' -Value ($LAPSCredentialsObject.backupDateTime).ToLocalTime()
 			
 			# Add property Next password rotation
-			$WindowsLAPSPassword | Add-Member -MemberType noteProperty -Name 'Next password rotation' -Value $WindowsLAPSPassword.refreshDateTime
+			$WindowsLAPSPassword | Add-Member -MemberType noteProperty -Name 'Next password rotation' -Value ($WindowsLAPSPassword.refreshDateTime).ToLocalTime()
 
 			# Format information to String List
 			$WindowsLAPSPasswordText = ($WindowsLAPSPassword | Select-Object -Property 'Account name', 'Security ID', 'Local administrator password', 'Last password rotation', 'Next password rotation' | Format-List | Out-String).Trim()
@@ -6167,12 +6173,23 @@ if($Success) {
 
 
 # Define Graph API scopes
-# Notice there are only read scope so this tool is safe and only doing read operations
-
+#
+# Notice there are only read scopes so this tool is safe and only doing read operations
+#
+#
 # For Bitlocker Revoery Recovery Keys information both scopes are required
 # "BitLockerKey.ReadBasic.All", "BitLockerKey.Read.All"
+#
+#
+# This is needed for Get deviceEnrollmentConfiguration
+# DeviceManagementServiceConfig.Read.All
+# https://learn.microsoft.com/en-us/graph/api/intune-shared-deviceenrollmentconfiguration-get?view=graph-rest-beta
+#
+# Otherwise usually it is enough to have enrollment details using
+# DeviceManagementConfiguration.Read.All
 
-$scopes = "DeviceManagementManagedDevices.Read.All", "DeviceManagementApps.Read.All", "DeviceManagementConfiguration.Read.All", "User.Read.All", "Group.Read.All", "GroupMember.Read.All", "Directory.Read.All", "BitLockerKey.ReadBasic.All", "BitLockerKey.Read.All"
+
+$scopes = "DeviceManagementManagedDevices.Read.All", "DeviceManagementApps.Read.All", "DeviceManagementConfiguration.Read.All", "DeviceManagementServiceConfig.Read.All", "User.Read.All", "Group.Read.All", "GroupMember.Read.All", "Directory.Read.All", "BitLockerKey.ReadBasic.All", "BitLockerKey.Read.All"
 
 Write-Host "Connect to Graph API"
 $MgGraph = Connect-MgGraph -scopes $scopes
@@ -6186,8 +6203,16 @@ if ($Success -and $MgGraph) {
 	
 	if($MgContext) {
 	
-		$TenantId = $MgContext.TenantId
-		$AdminUserUPN = $MgContext.Account
+		#if($MgContext.TenantId -and $MgContext.Account) {
+		if($MgContext.TenantId) {
+			$TenantId = $MgContext.TenantId
+			$AdminUserUPN = $MgContext.Account
+		} else {
+			#Write-Host "Could not get TenantId and LoggedInUser name!`nScript will exit!" -ForegroundColor Red
+			Write-Host "Could not get TenantId!`nProblem with Microsoft Graph API authentication!`n" -ForegroundColor Red
+			Write-Host "`nScript will exit!`n" -ForegroundColor Red
+			Exit 1
+		}
 
 		$WPFlabel_ConnectedAsUser_UserName.Content = $AdminUserUPN
 	} else {
