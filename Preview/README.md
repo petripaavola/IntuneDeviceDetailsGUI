@@ -1,5 +1,4 @@
-# Preview version 2.981
-Go to script [IntuneDeviceDetailsGUI-v2.981-Preview.ps1](./IntuneDeviceDetailsGUI-v2.981-Preview.ps1)  
+# No Preview version at the moment. Download production version 2.982
 
 **Preview versions are development versions which I use daily with my production environments.**
 
