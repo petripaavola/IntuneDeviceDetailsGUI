@@ -2,7 +2,11 @@
 
 ### Note! Script uses now Microsoft.Graph.Authentication module ###
 
-Go to script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)
+**Go to script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)**
+
+
+There is Preview version available which have some bug fixes and other fixes  
+Go to Preview script [IntuneDeviceDetailsGUI-v2.981-Preview.ps1](./Preview/IntuneDeviceDetailsGUI-v2.981-Preview.ps1)
 
 **Version 2.98 update to Microsoft Graph module.**
 * **Script uses now Microsoft.Graph.Authentication Powershell module**
