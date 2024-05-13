@@ -4,10 +4,6 @@
 
 **Go script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)**
 
-
-There is Preview version available which have some bug fixes and other fixes  
-Go to [Preview page](./Preview)
-
 **Version 2.982 update to Microsoft Graph module.**
 * Added Graph API scope **DeviceManagementServiceConfig.Read.All** to get deviceEnrollmentConfiguration information
 * Changed Bitlocker Recovery Keys and LAPS Password **dateTime to current timezone**
