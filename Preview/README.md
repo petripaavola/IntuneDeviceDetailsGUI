@@ -1,11 +1,14 @@
-# No Preview version available at the moment
-**Production version 2.98 is latest version now.**  
+# Preview version v 2.981
 
 **Preview versions are development versions which I use daily with my production environments.**
 
 
 Most likely reason for not being production version is that I would like to get feedback from testers that everything is ok in this version before making this version as a production release.
 
+### Changelog v2.981 (Preview)
+* check that TenantId value is readable after authentication
+* Continue if getting Enrollment profiles fails
+* Show Bitlocker Recovery Keys and LAPS Password dateTime values in local time
 
 ### Changelog v2.974
 * Mouse cursor is changed to Waiting-mode (running circle) during report creation. This helps user understand that report creation process is running
