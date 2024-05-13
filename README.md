@@ -2,7 +2,7 @@
 
 ### Note! Script uses now Microsoft.Graph.Authentication module ###
 
-**Go to script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)**
+**Go to [Preview page](./Preview)**
 
 
 There is Preview version available which have some bug fixes and other fixes  
