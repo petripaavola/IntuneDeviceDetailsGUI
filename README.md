@@ -1,8 +1,11 @@
-# Intune Device Details GUI ver. 2.982 (updated 2024-05-13)
+# Intune Device Details GUI ver. 2.985 (updated 2024-07-19)
 
 ### Note! Script uses now Microsoft.Graph.Authentication module ###
 
 **Go script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)**
+
+**Version 2.985 update to Microsoft Graph module.**
+* Added Graph API scope **DeviceLocalCredential.Read.All** to get LAPS passwords
 
 **Version 2.982 update to Microsoft Graph module.**
 * Added Graph API scope **DeviceManagementServiceConfig.Read.All** to get deviceEnrollmentConfiguration information
