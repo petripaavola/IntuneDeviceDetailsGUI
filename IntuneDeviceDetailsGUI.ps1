@@ -1,6 +1,6 @@
 ﻿<#
 .Synopsis
-   Intune Device Details GUI ver 2.982 (MgGraph version)
+   Intune Device Details GUI ver 2.985 (MgGraph version)
    
 
    Author:
@@ -8,7 +8,7 @@
    Modern Management Principal
    Microsoft MVP - Windows and Devices
    
-   2024-05-13
+   2024-07-19
    
    https://github.com/petripaavola/IntuneDeviceDetailsGUI
 .DESCRIPTION
@@ -82,7 +82,7 @@ Param(
     [String]$id = $null
 )
 
-$ScriptVersion = "ver 2.982"
+$ScriptVersion = "ver 2.985"
 $IntuneDeviceId = $id
 $TimeOutBetweenGraphAPIRequests = 300
 
@@ -6177,9 +6177,11 @@ if($Success) {
 # Notice there are only read scopes so this tool is safe and only doing read operations
 #
 #
-# For Bitlocker Revoery Recovery Keys information both scopes are required
+# For Bitlocker Recovery Keys information both scopes are required
 # "BitLockerKey.ReadBasic.All", "BitLockerKey.Read.All"
 #
+# Entra LAPS Passwords requires
+# DeviceLocalCredential.Read.All
 #
 # This is needed for Get deviceEnrollmentConfiguration
 # DeviceManagementServiceConfig.Read.All
@@ -6189,7 +6191,7 @@ if($Success) {
 # DeviceManagementConfiguration.Read.All
 
 
-$scopes = "DeviceManagementManagedDevices.Read.All", "DeviceManagementApps.Read.All", "DeviceManagementConfiguration.Read.All", "DeviceManagementServiceConfig.Read.All", "User.Read.All", "Group.Read.All", "GroupMember.Read.All", "Directory.Read.All", "BitLockerKey.ReadBasic.All", "BitLockerKey.Read.All"
+$scopes = "DeviceManagementManagedDevices.Read.All", "DeviceManagementApps.Read.All", "DeviceManagementConfiguration.Read.All", "DeviceManagementServiceConfig.Read.All", "User.Read.All", "Group.Read.All", "GroupMember.Read.All", "Directory.Read.All", "BitLockerKey.ReadBasic.All", "BitLockerKey.Read.All", "DeviceLocalCredential.Read.All"
 
 Write-Host "Connect to Graph API"
 $MgGraph = Connect-MgGraph -scopes $scopes
