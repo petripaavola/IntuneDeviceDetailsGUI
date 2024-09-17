@@ -46,8 +46,9 @@ Assignment group information helps admins to understand why apps and configurati
 * **Search** with free keyword or use built-in Quick Filters
   * Keyword search with device name, serial, user email address, operating system, deviceId
   * searching with user email address also shows devices where user has logged-in (this is not shown in MEM/Intune search)
-* **Show Application Assignments with AzureAD Groups and Filters information**
-* **Show Configurations Assignments with AzureAD Groups and Filters information**
+* **Show Application Assignments with EntraID Groups and Filters information**
+* **Show Configurations Assignments with EntraID Groups and Filters information**
+* **Show Remediation script Assignments with EntraID Groups and Filters information**
 * **Show Bitlocker Recovery Keys**
 * **Show Windows LAPS Password**
 * Highlight assignment states with colors to easily see what is happening
