@@ -1,8 +1,12 @@
-# Intune Device Details GUI ver. 2.985 (updated 2024-07-19)
+# Intune Device Details GUI ver. 3.0 (updated 2024-09-17)
 
 ### Note! Script uses now Microsoft.Graph.Authentication module ###
 
 **Go script [IntuneDeviceDetailsGUI.ps1](./IntuneDeviceDetailsGUI.ps1)**
+
+**Version 3.0 shows Remediation scripts.**
+* Shows Remediation scripts in third assignment category
+* Hovering on top of Remediation script you can see for example output (hover over status column) and schedule (hover over AssignmentGroup)
 
 **Version 2.985 update to Microsoft Graph module.**
 * Added Graph API scope **DeviceLocalCredential.Read.All** to get LAPS passwords
