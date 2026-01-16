@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Intune](https://img.shields.io/badge/Microsoft-Intune-0078D4.svg)](https://www.microsoft.com/en-us/microsoft-365/enterprise-mobility-security/microsoft-intune)
 
-<img src="./IntuneDeviceDetailsGUI-v4.0-Screenshot-minimal.png" alt="Report Preview" width="256">
+<img src="./pics/IntuneDeviceDetailsGUI-v4.0-Screenshot-minimal.png" alt="Report Preview" width="256">
 
 [**🐛 Report Issues**](../../issues) | [**💡 Feature Requests**](../../issues)
 
@@ -65,11 +65,11 @@
 ## 📸 Screenshots
 
 ### Interactive Console
-![Console Interface](./IntuneDeviceDetailsGUI-v4.0-Console.png)
+![Console Interface](./pics/IntuneDeviceDetailsGUI-v4.0-Console.png)
 *Device search with built-in filters and report type selection*
 
 ### HTML Report
-![Device Details Report](./IntuneDeviceDetailsGUI-v4.0-Screenshot.png)
+![Device Details Report](./pics/IntuneDeviceDetailsGUI-v4.0-Screenshot.png)
 *Complete device intelligence in one beautiful HTML page*
 
 ---
@@ -123,7 +123,7 @@ Complete WPF → HTML rebuild • Settings Catalog conflict detection • Win32 
 ### Version 3.0 (September 2024)
 Remediation scripts • Enhanced tooltips • Graph API improvements
 
-[View v3.0 Documentation](./README-original-3.0%20-version.md)
+[View v3.0 Documentation](./old_version_3.0/README.md)
 
 ---
 
