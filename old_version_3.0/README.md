@@ -1,3 +1,5 @@
+# DEPRECATED but still working
+
 # Intune Device Details GUI ver. 3.0 (updated 2024-09-17)
 
 ### Note! Script uses now Microsoft.Graph.Authentication module ###
