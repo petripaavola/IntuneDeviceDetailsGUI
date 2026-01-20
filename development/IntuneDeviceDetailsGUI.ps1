@@ -47,7 +47,7 @@
 	Generates extended report directly for the specified device ID.
 
 .NOTES
-	Version: 4.1
+	Version: 4.11
 	Author: Petri Paavola
 	Requires: Microsoft.Graph.Authentication PowerShell module
 	
@@ -85,7 +85,7 @@ param(
 	[string]$OutputFolder
 )
 
-$Version = '4.1'
+$Version = '4.11'
 $TimeOutBetweenGraphAPIRequests = 300
 $GraphAPITop = 100
 $script:ReloadCacheEveryNDays = 1
@@ -877,8 +877,9 @@ function Analyze-SettingsCatalogConflicts {
 	
 	Write-Verbose "Extracted $($allSettings.Count) settings from policies. Analyzing for conflicts..."
 	
-	# Group by SettingDefinitionId to find duplicates
-	$grouped = $allSettings | Group-Object -Property SettingDefinitionId | Where-Object { $_.Count -gt 1 }
+	# Group by both SettingDefinitionId AND SettingName to ensure we're comparing the exact same setting
+	# This prevents false positives when different settings share the same parent category
+	$grouped = $allSettings | Group-Object -Property SettingDefinitionId,SettingName | Where-Object { $_.Count -gt 1 }
 	
 	$conflicts = @()
 	$warnings = @()
@@ -3675,7 +3676,8 @@ function Get-ConfigurationPolicyReport {
 		$lastModifiedDateTime = $DeviceConfiguration.PspdpuLastModifiedTimeUtc
 
 		# Remove #microsoft.graph. from @odata.type
-		if ($odatatype) {
+		# Value can be empty string also so we need to test that also
+		if ($odatatype -and -not [string]::IsNullOrWhiteSpace($odatatype)) {
 			$odatatype = $odatatype.Replace('#microsoft.graph.', '')
 		}
 		
