@@ -2,7 +2,7 @@
 
 <div align="center">
 
-### **Version 4.0** - The Next Generation
+### **Version 4.2** - The Next Generation
 *Completely rebuilt from the ground up with AI-powered architecture*
 
 [![PowerShell](https://img.shields.io/badge/PowerShell-7%20%7C%205.1-blue.svg)](https://github.com/PowerShell/PowerShell)
@@ -33,7 +33,7 @@
 
 **The "Resultant Set of Policy" for Intune** - Understand **WHAT should be configured and WHY** on device based on all assigned apps, policies, scripts, groups and filters.
 
-### Complete Device Intelligence (v4.0)
+### Complete Device Intelligence (v4.x)
 **Device**: Hardware, OS, storage, network, sync, Autopilot, enrollment type, MDE status  
 **Users**: Primary + logged-in users, group memberships with dynamic rules  
 **Apps**: All Assignments for Device with install status, Win32 scripts (install/uninstall/detection/requirement), filters, application information  
@@ -41,7 +41,7 @@
 **Scripts**: All Assignments for Device Remediation/platform/shell scripts (clear text script content, **execution output** with Remediations scripts)  
 **Assignments**: Full chain (groups, filters, impact counts, dynamic rules)
 
-### Hero Features (New in v4.0)
+### Hero Features (New in v4.x)
 🎨 **HTML Reports** - Beautiful, searchable, shareable (replaced WPF GUI)  
 🔍 **Universal Search & Filter** - **Search/filter** HTML tables **by ANY data** (names, settings, tooltips, policy content)  
 🎯 **Interactive Tooltips** - Hover on -tooltips on top cards + **click any table row for detailed popup window**  
@@ -116,6 +116,9 @@ Contributions welcome! Fork → Feature branch → Pull Request
 ---
 
 ## 📝 Changelog
+
+### Version 4.2 (January 2026)
+Bug fixes • Resilient Graph API call with retry • Fixed caching logic • Platform scripts are shown only on applicable OS • PrimaryUser information • Settings Catalog Conflict and Duplicate logic fixes • UTF-8 -encoding issues in Tooltips • Less red errors :)
 
 ### Version 4.0 (January 2026)
 Complete WPF → HTML rebuild • Settings Catalog conflict detection • Win32 app script visibility • Remediation script output • Three report types • 98% AI-written code • Performance optimizations • MDE detection • Enrollment type friendly names
