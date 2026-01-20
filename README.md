@@ -2,7 +2,7 @@
 
 <div align="center">
 
-### **Version 4.2** - The Next Generation
+### **Version 4.21** - The Next Generation
 *Completely rebuilt from the ground up with AI-powered architecture*
 
 [![PowerShell](https://img.shields.io/badge/PowerShell-7%20%7C%205.1-blue.svg)](https://github.com/PowerShell/PowerShell)
@@ -116,6 +116,9 @@ Contributions welcome! Fork → Feature branch → Pull Request
 ---
 
 ## 📝 Changelog
+
+### Version 4.21 (January 2026)
+Better Microsoft Graph API error handling
 
 ### Version 4.2 (January 2026)
 Bug fixes • Resilient Graph API call with retry • Fixed caching logic • Platform scripts are shown only on applicable OS • PrimaryUser information • Settings Catalog Conflict and Duplicate logic fixes • UTF-8 -encoding issues in Tooltips • Less red errors :)
