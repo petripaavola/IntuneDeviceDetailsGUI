@@ -104,6 +104,11 @@
 - User.Read.All
 - Directory.Read.All
 
+**Entra Enterprise Application**:
+- **Name**: `Microsoft Graph Command Line Tools` or `Microsoft Graph PowerShell`
+- **Application ID**: `14d82eec-204b-4c2f-b7e8-296a70dab67e`
+- **Note**: Both names refer to the same enterprise application used by Microsoft Graph PowerShell module
+
 Script automatically requests permissions on first run.
 
 ---
