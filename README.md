@@ -23,9 +23,10 @@
 2. **Install module**: `Install-Module Microsoft.Graph.Authentication -Scope CurrentUser`
 3. **Allow scripts**: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`
 4. **Run**: `.\IntuneDeviceDetailsGUI.ps1`
-5. **Search device** by name, serial, or user (use **?** for built-in filters like "synced in last 24h")
-6. **Select Extended Report** (default) for full features (conflict detection, scripts)
-7. **HTML report opens** automatically in browser
+5. **Approve permissions** when prompted (first run only) - [See required permissions](#-permissions)
+6. **Search device** by name, serial, or user (use **?** for built-in filters like "synced in last 24h")
+7. **Select Extended Report** (default) for full features (conflict detection, scripts)
+8. **HTML report opens** automatically in browser
 
 ---
 
