@@ -2,7 +2,7 @@
 
 <div align="center">
 
-### **Version 4.21** - The Next Generation
+### **Version 4.23** - The Next Generation
 *Completely rebuilt from the ground up with AI-powered architecture*
 
 [![PowerShell](https://img.shields.io/badge/PowerShell-7%20%7C%205.1-blue.svg)](https://github.com/PowerShell/PowerShell)
