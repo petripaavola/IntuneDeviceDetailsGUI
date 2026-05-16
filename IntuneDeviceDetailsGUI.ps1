@@ -3095,7 +3095,7 @@ function Initialize-IntuneSession {
 	$scopes = @(
 		'DeviceManagementManagedDevices.Read.All',
 		'DeviceManagementApps.Read.All',
-		'DeviceManagementConfiguration.Read.All',
+		'DeviceManagementConfiguration.ReadWrite.All',
 		'DeviceManagementServiceConfig.Read.All',
 		'DeviceManagementScripts.Read.All',
 		'User.Read.All',
